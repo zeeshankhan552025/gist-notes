@@ -3,6 +3,7 @@ import { Input, Button, Avatar, Dropdown, message } from "antd"
 import { SearchOutlined, UserOutlined, LogoutOutlined, SettingOutlined, GithubOutlined } from "@ant-design/icons"
 import type { MenuProps } from "antd"
 import { githubService } from "../services/github"
+import { useAuth } from "../contexts/AuthContext"
 import "./header.scss"
 
 interface HeaderProps {
@@ -10,28 +11,28 @@ interface HeaderProps {
 }
 
 export function Header({ onSearchResult }: HeaderProps) {
-  // Mock user state - replace with actual auth state management
-  const [isLoggedIn, setIsLoggedIn] = useState(false)
+  const { isAuthenticated, userInfo, login, logout } = useAuth()
   const [searchValue, setSearchValue] = useState("")
   const [searching, setSearching] = useState(false)
-  const user = { name: "John Doe", email: "john@example.com" }
 
-  const handleGitHubLogin = () => {
-    // GitHub OAuth login
-    const clientId = process.env.REACT_APP_GITHUB_CLIENT_ID || 'your-github-client-id'
-    const redirectUri = encodeURIComponent(window.location.origin + '/auth/callback')
-    const scope = 'read:user,public_repo'
-    
-    const authUrl = `https://github.com/login/oauth/authorize?client_id=${clientId}&redirect_uri=${redirectUri}&scope=${scope}`
-    
-    // Open GitHub OAuth in same window
-    window.location.href = authUrl
+  const handleGitHubLogin = async () => {
+    try {
+      await login()
+      message.success('Successfully logged in with GitHub!')
+    } catch (error) {
+      console.error('Login failed:', error)
+      message.error('Failed to login. Please try again.')
+    }
   }
 
-  const handleLogout = () => {
-    setIsLoggedIn(false)
-    localStorage.removeItem('github_token')
-    message.success('Logged out successfully')
+  const handleLogout = async () => {
+    try {
+      await logout()
+      message.success('Logged out successfully')
+    } catch (error) {
+      console.error('Logout failed:', error)
+      message.error('Failed to logout. Please try again.')
+    }
   }
 
   const handleSearch = async () => {
@@ -88,7 +89,8 @@ export function Header({ onSearchResult }: HeaderProps) {
     },
   ]
 
-  const getUserInitials = (name: string) => {
+  const getUserInitials = (name: string | null) => {
+    if (!name) return "U"
     return name
       .split(' ')
       .map(n => n[0])
@@ -135,14 +137,15 @@ export function Header({ onSearchResult }: HeaderProps) {
           </form>
 
           <div className="topbar__actions">
-            {isLoggedIn ? (
+            {isAuthenticated ? (
               <Dropdown menu={{ items: userMenuItems }} placement="bottomRight" arrow>
                 <div className="topbar__user-menu">
                   <Avatar 
                     size={32}
                     style={{ backgroundColor: '#1890ff', cursor: 'pointer' }}
+                    src={userInfo?.photoURL}
                   >
-                    {getUserInitials(user.name)}
+                    {!userInfo?.photoURL && getUserInitials(userInfo?.displayName || null)}
                   </Avatar>
                 </div>
               </Dropdown>
