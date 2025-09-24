@@ -124,7 +124,6 @@ export function Header({ onSearchResult }: HeaderProps) {
                   loading={searching}
                   onClick={handleSearch}
                 >
-                  Search
                 </Button>
               }
               value={searchValue}
@@ -154,9 +153,8 @@ export function Header({ onSearchResult }: HeaderProps) {
                 type="primary" 
                 className="topbar__login" 
                 onClick={handleGitHubLogin}
-                icon={<GithubOutlined />}
               >
-                Login with GitHub
+                Login
               </Button>
             )}
           </div>
