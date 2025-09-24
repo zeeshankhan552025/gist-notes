@@ -48,7 +48,8 @@ export function PublicGistsGrid({ gists, loading }: PublicGistsGridProps) {
           gistName: Object.keys(gist.files)[0] || 'untitled',
           description: gist.description || 'No description',
           createdAt: new Date(gist.created_at).toLocaleDateString(),
-          codeSnippet: getCodeSnippet(gist)
+          codeSnippet: getCodeSnippet(gist),
+          language: getGistLanguage(gist)
         }
 
         return <GistCard key={gist.id} data={cardData} />
@@ -64,4 +65,9 @@ function getCodeSnippet(gist: GitHubGist): string {
   // For now, return a placeholder since we don't have content in the API response
   // In a real app, you'd fetch the raw content or truncate if available
   return `// ${firstFile.filename}\n// ${firstFile.language || 'Text'} file\n// ${firstFile.size} bytes`
+}
+
+function getGistLanguage(gist: GitHubGist): string | undefined {
+  const firstFile = Object.values(gist.files)[0]
+  return firstFile?.language?.toLowerCase()
 }

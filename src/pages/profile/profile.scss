@@ -110,6 +110,44 @@ $text: #111418;
     color: $text;
   }
 
+  &__username {
+    font-size: 16px;
+    color: #656d76;
+    margin-top: -8px;
+  }
+
+  &__bio {
+    font-size: 14px;
+    color: $text;
+    text-align: center;
+    line-height: 1.4;
+    max-width: 250px;
+  }
+
+  &__stats {
+    display: flex;
+    gap: 16px;
+    margin: 8px 0;
+  }
+
+  &__stat {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+  }
+
+  &__stat-number {
+    font-size: 16px;
+    font-weight: 600;
+    color: $text;
+  }
+
+  &__stat-label {
+    font-size: 12px;
+    color: #656d76;
+  }
+
   &__button {
     display: inline-block;
     background: $brand-teal;

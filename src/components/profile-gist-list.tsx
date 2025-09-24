@@ -1,3 +1,6 @@
+import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter'
+import { oneLight } from 'react-syntax-highlighter/dist/esm/styles/prism'
+
 type GistItem = {
   id: string
   fileName: string
@@ -6,9 +9,51 @@ type GistItem = {
   description: string
   createdAt: string
   lines: string[]
+  ownerAvatar?: string | null
+  language?: string
 }
 
 export function ProfileGistList({ items }: { items: GistItem[] }) {
+  const getInitials = (name: string) => {
+    return name
+      .split(' ')
+      .map(n => n[0])
+      .join('')
+      .toUpperCase()
+      .slice(0, 2)
+  }
+
+  const getLanguageFromFilename = (filename: string): string => {
+    const extension = filename.split('.').pop()?.toLowerCase()
+    const languageMap: Record<string, string> = {
+      'js': 'javascript',
+      'jsx': 'jsx',
+      'ts': 'typescript',
+      'tsx': 'tsx',
+      'py': 'python',
+      'java': 'java',
+      'c': 'c',
+      'cpp': 'cpp',
+      'cs': 'csharp',
+      'php': 'php',
+      'rb': 'ruby',
+      'go': 'go',
+      'rs': 'rust',
+      'sh': 'bash',
+      'sql': 'sql',
+      'html': 'html',
+      'css': 'css',
+      'scss': 'scss',
+      'json': 'json',
+      'xml': 'xml',
+      'yml': 'yaml',
+      'yaml': 'yaml',
+      'md': 'markdown',
+      'dockerfile': 'dockerfile'
+    }
+    return languageMap[extension || ''] || 'text'
+  }
+
   return (
     <div className="gist-list">
       {items.map((g) => (
@@ -21,22 +66,46 @@ export function ProfileGistList({ items }: { items: GistItem[] }) {
           </div>
 
           <div className="gist-list__code">
-            <div className="gist-list__gutter" aria-hidden="true">
-              {g.lines.map((_, i) => (
-                <span key={i} className="gist-list__line-number">
-                  {i + 1}
-                </span>
-              ))}
-            </div>
-            <pre className="gist-list__pre" aria-label="Code preview">
-              {g.lines.join("\n")}
-            </pre>
+            <SyntaxHighlighter
+              language={g.language || getLanguageFromFilename(g.fileName)}
+              style={oneLight}
+              showLineNumbers={true}
+              customStyle={{
+                margin: 0,
+                padding: '12px',
+                fontSize: '13px',
+                lineHeight: '1.4',
+                backgroundColor: '#fafafa',
+                border: 'none'
+              }}
+              lineNumberStyle={{
+                minWidth: '2.5em',
+                paddingRight: '1em',
+                color: '#999',
+                fontSize: '12px'
+              }}
+            >
+              {g.lines.join('\n')}
+            </SyntaxHighlighter>
           </div>
 
           <div className="gist-list__meta">
             <div className="gist-list__meta-left">
               <div className="gist-list__avatar" aria-hidden="true">
-                JD
+                {g.ownerAvatar ? (
+                  <img 
+                    src={g.ownerAvatar} 
+                    alt={`${g.owner}'s avatar`}
+                    style={{ 
+                      width: '100%', 
+                      height: '100%', 
+                      borderRadius: '50%',
+                      objectFit: 'cover'
+                    }}
+                  />
+                ) : (
+                  getInitials(g.owner || 'User')
+                )}
               </div>
               <div className="gist-list__owner">
                 <span className="gist-list__owner-name">{g.owner}</span>

@@ -56,13 +56,7 @@ export default function LandingPage() {
       <div className="landing__container">
         <header className="landing__header">
           <div className="landing__header-left">
-            <h1 className="landing__title">Discover Public Gists</h1>
-            <p className="landing__subtitle">
-              Explore and discover public code snippets from the GitHub community
-            </p>
-            <Button onClick={handleRefresh} loading={loading} size="small">
-              Refresh
-            </Button>
+            <h1 className="landing__title">Public Gists</h1>
           </div>
           <div className="landing__view-switch" aria-label="View options">
             <button 

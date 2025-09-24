@@ -1,6 +1,7 @@
 import { useState } from "react"
 import { Input, Button, Avatar, Dropdown, message } from "antd"
 import { SearchOutlined, UserOutlined, LogoutOutlined, SettingOutlined } from "@ant-design/icons"
+import { useNavigate } from "react-router-dom"
 import type { MenuProps } from "antd"
 import { githubService } from "../services/github"
 import { useAuth } from "../contexts/AuthContext"
@@ -12,6 +13,7 @@ interface HeaderProps {
 
 export function Header({ onSearchResult }: HeaderProps) {
   const { isAuthenticated, userInfo, login, logout } = useAuth()
+  const navigate = useNavigate()
   const [searchValue, setSearchValue] = useState("")
   const [searching, setSearching] = useState(false)
 
@@ -67,6 +69,21 @@ export function Header({ onSearchResult }: HeaderProps) {
     }
   }
 
+  const handleMenuClick = (info: any) => {
+    switch (info.key) {
+      case 'profile':
+        navigate('/profile')
+        break
+      case 'settings':
+        // You can navigate to settings page when it's created
+        message.info('Settings page coming soon!')
+        break
+      case 'logout':
+        handleLogout()
+        break
+    }
+  }
+
   const userMenuItems: MenuProps['items'] = [
     {
       key: 'profile',
@@ -85,7 +102,6 @@ export function Header({ onSearchResult }: HeaderProps) {
       key: 'logout',
       icon: <LogoutOutlined />,
       label: 'Logout',
-      onClick: handleLogout,
     },
   ]
 
@@ -103,7 +119,12 @@ export function Header({ onSearchResult }: HeaderProps) {
     <header className="topbar" role="banner">
       <div className="topbar__inner">
         {/* Left side - Brand */}
-        <div className="topbar__brand" aria-label="Brand">
+        <div 
+          className="topbar__brand" 
+          aria-label="Brand"
+          style={{ cursor: 'pointer' }}
+          onClick={() => navigate('/')}
+        >
           <span aria-hidden="true">
             <img src="/logo.svg" alt="EMUMBA Logo" />
           </span>
@@ -137,7 +158,19 @@ export function Header({ onSearchResult }: HeaderProps) {
 
           <div className="topbar__actions">
             {isAuthenticated ? (
-              <Dropdown menu={{ items: userMenuItems }} placement="bottomRight" arrow>
+              <>
+                <Button 
+                  type="default" 
+                  onClick={() => navigate('/create-gist')}
+                  style={{ marginRight: '12px' }}
+                >
+                  Create Gist
+                </Button>
+                <Dropdown 
+                  menu={{ items: userMenuItems, onClick: handleMenuClick }} 
+                  placement="bottomRight" 
+                  arrow
+                >
                 <div className="topbar__user-menu">
                   <Avatar 
                     size={32}
@@ -148,6 +181,7 @@ export function Header({ onSearchResult }: HeaderProps) {
                   </Avatar>
                 </div>
               </Dropdown>
+              </>
             ) : (
               <Button 
                 type="primary" 

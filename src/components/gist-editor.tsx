@@ -9,6 +9,7 @@ type GistEditorProps = {
   className?: string
   readOnly?: boolean
   height?: number | string
+  onChange?: (value: string | undefined) => void
 }
 
 export default function GistEditor({
@@ -17,6 +18,7 @@ export default function GistEditor({
   className,
   readOnly = true,
   height = 520,
+  onChange,
 }: GistEditorProps) {
   return (
     <div className={`gist-editor ${className || ""}`}>
@@ -25,6 +27,7 @@ export default function GistEditor({
           height={height}
           defaultLanguage={language}
           value={value}
+          onChange={onChange}
           theme="vs-light"
           options={{
             readOnly,

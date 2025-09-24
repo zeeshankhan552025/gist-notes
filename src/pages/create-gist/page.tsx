@@ -1,12 +1,20 @@
 import type React from "react"
 
 import { useState } from "react"
+import { useNavigate } from "react-router-dom"
 import "./create-gist.scss"
 import GistFileEditor, { type GistFile } from "../../components/gist-file-editor"
+import { githubService } from "../../services/github"
+import { firebaseAuthService } from "../../services/firebase-auth"
 import { v4 as uuidv4 } from "uuid"
 
 export default function CreateGistPage() {
+  const navigate = useNavigate()
   const [description, setDescription] = useState<string>("")
+  const [isPublic, setIsPublic] = useState<boolean>(true)
+  const [isCreating, setIsCreating] = useState<boolean>(false)
+  const [error, setError] = useState<string>("")
+  const [success, setSuccess] = useState<string>("")
   const [files, setFiles] = useState<GistFile[]>([
     {
       id: uuidv4(),
@@ -27,24 +35,86 @@ export default function CreateGistPage() {
     setFiles((prev) => [...prev, { id: uuidv4(), filename: "", content: "" }])
   }
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
+    
+    // Clear previous messages
+    setError("")
+    setSuccess("")
 
-    // Basic validation
-    const nonEmpty = files.filter((f) => f.filename.trim() && f.content.trim())
-    if (nonEmpty.length === 0) {
-      alert("Add at least one file with a filename and content.")
+    // Check if user is authenticated
+    if (!firebaseAuthService.isAuthenticated()) {
+      setError("Please log in with GitHub to create gists.")
       return
     }
 
-    const payload = {
-      description: description.trim(),
-      files: nonEmpty.map(({ filename, content }) => ({ filename, content })),
+    // Basic validation
+    const validFiles = files.filter((f) => f.filename.trim() && f.content.trim())
+    if (validFiles.length === 0) {
+      setError("Add at least one file with a filename and content.")
+      return
     }
 
-    // Placeholder: wire this to your API/server action as needed
-    console.log("[v0] Create Gist payload:", payload)
-    alert("Gist data captured in the console. Wire this to your backend to create the gist.")
+    // Check for duplicate filenames
+    const filenames = validFiles.map(f => f.filename.trim())
+    const uniqueFilenames = new Set(filenames)
+    if (filenames.length !== uniqueFilenames.size) {
+      setError("Each file must have a unique filename.")
+      return
+    }
+
+    setIsCreating(true)
+
+    try {
+      // Format files for GitHub API
+      const gistFiles: Record<string, { content: string }> = {}
+      validFiles.forEach((file) => {
+        gistFiles[file.filename.trim()] = {
+          content: file.content
+        }
+      })
+
+      // Create gist payload
+      const gistData = {
+        description: description.trim() || "Created with Gist Notes App",
+        public: isPublic,
+        files: gistFiles
+      }
+
+      console.log("Creating gist with data:", gistData)
+
+      // Create the gist on GitHub
+      const createdGist = await githubService.createGist(gistData)
+      
+      console.log("Gist created successfully:", createdGist)
+      
+      // Show success message
+      setSuccess(`Gist created successfully! View it at: ${createdGist.html_url}`)
+      
+      // Wait a moment to show the success message, then navigate
+      setTimeout(() => {
+        navigate(`/gist/${createdGist.id}`)
+      }, 2000)
+      
+    } catch (error) {
+      console.error("Error creating gist:", error)
+      
+      if (error instanceof Error) {
+        if (error.message.includes('401')) {
+          setError("Authentication failed. Please log in again with GitHub.")
+        } else if (error.message.includes('403')) {
+          setError("Permission denied. Please check your GitHub token permissions.")
+        } else if (error.message.includes('422')) {
+          setError("Invalid gist data. Please check your files and try again.")
+        } else {
+          setError(`Failed to create gist: ${error.message}`)
+        }
+      } else {
+        setError("Failed to create gist. Please try again.")
+      }
+    } finally {
+      setIsCreating(false)
+    }
   }
 
   return (
@@ -54,6 +124,18 @@ export default function CreateGistPage() {
       </h1>
 
       <form className="gist-create__form" onSubmit={handleSubmit}>
+        {error && (
+          <div className="gist-create__message gist-create__message--error">
+            {error}
+          </div>
+        )}
+        
+        {success && (
+          <div className="gist-create__message gist-create__message--success">
+            {success}
+          </div>
+        )}
+
         <label className="gist-create__label" htmlFor="gist-description">
           Description
         </label>
@@ -63,20 +145,42 @@ export default function CreateGistPage() {
           placeholder="This is a Git Description"
           value={description}
           onChange={(e) => setDescription(e.target.value)}
+          disabled={isCreating}
         />
+
+        <div className="gist-create__visibility">
+          <label className="gist-create__label">
+            <input
+              type="checkbox"
+              checked={isPublic}
+              onChange={(e) => setIsPublic(e.target.checked)}
+              disabled={isCreating}
+            />
+            Public gist (visible to everyone)
+          </label>
+          <p className="gist-create__visibility-help">
+            {isPublic ? "Anyone can see this gist" : "Only you can see this gist"}
+          </p>
+        </div>
 
         <div className="gist-create__files">
           {files.map((file) => (
-            <GistFileEditor key={file.id} file={file} onChange={handleFileChange} onRemove={handleRemove} />
+            <GistFileEditor 
+              key={file.id} 
+              file={file} 
+              onChange={handleFileChange} 
+              onRemove={handleRemove}
+              disabled={isCreating}
+            />
           ))}
         </div>
 
         <div className="gist-create__actions">
-          <button type="button" onClick={handleAddFile} className="btn btn--ghost">
+          <button type="button" onClick={handleAddFile} className="btn btn--ghost" disabled={isCreating}>
             Add file
           </button>
-          <button type="submit" className="btn btn--primary">
-            Create Gist
+          <button type="submit" className="btn btn--primary" disabled={isCreating}>
+            {isCreating ? "Creating..." : "Create Gist"}
           </button>
         </div>
       </form>

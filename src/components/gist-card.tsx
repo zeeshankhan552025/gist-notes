@@ -1,5 +1,7 @@
 import { Avatar, Tooltip } from "antd"
 import { ForkOutlined, StarOutlined } from "@ant-design/icons"
+import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter'
+import { oneLight } from 'react-syntax-highlighter/dist/esm/styles/prism'
 
 export type GistCardData = {
   id: string
@@ -9,6 +11,7 @@ export type GistCardData = {
   createdAt: string
   codeSnippet: string
   viewLabel?: string
+  language?: string
 }
 
 export default function GistCard({ data }: { data: GistCardData }) {
@@ -21,20 +24,64 @@ export default function GistCard({ data }: { data: GistCardData }) {
       .join("")
       .toUpperCase() || "U"
 
-  const lines = data.codeSnippet.split("\n")
+  const getLanguageFromFilename = (filename: string): string => {
+    const extension = filename.split('.').pop()?.toLowerCase()
+    const languageMap: Record<string, string> = {
+      'js': 'javascript',
+      'jsx': 'jsx',
+      'ts': 'typescript',
+      'tsx': 'tsx',
+      'py': 'python',
+      'java': 'java',
+      'c': 'c',
+      'cpp': 'cpp',
+      'cs': 'csharp',
+      'php': 'php',
+      'rb': 'ruby',
+      'go': 'go',
+      'rs': 'rust',
+      'sh': 'bash',
+      'sql': 'sql',
+      'html': 'html',
+      'css': 'css',
+      'scss': 'scss',
+      'json': 'json',
+      'xml': 'xml',
+      'yml': 'yaml',
+      'yaml': 'yaml',
+      'md': 'markdown',
+      'dockerfile': 'dockerfile'
+    }
+    return languageMap[extension || ''] || 'text'
+  }
+
   const viewText = `View ${data.viewLabel ?? "vercel_package.json"}`
 
   return (
     <article className="gists-cards__card" aria-label={`${data.authorName} / ${data.gistName}`}>
       <div className="gists-cards__code">
-        <ol className="gists-cards__gutter" aria-hidden="true">
-          {lines.map((_, i) => (
-            <li key={i}>{i + 1}</li>
-          ))}
-        </ol>
-        <pre className="gists-cards__code-pre" aria-label="Code preview">
+        <SyntaxHighlighter
+          language={data.language || getLanguageFromFilename(data.gistName)}
+          style={oneLight}
+          showLineNumbers={true}
+          customStyle={{
+            margin: 0,
+            padding: '12px',
+            fontSize: '12px',
+            lineHeight: '1.3',
+            backgroundColor: '#fafafa',
+            border: 'none',
+            borderRadius: '6px 6px 0 0'
+          }}
+          lineNumberStyle={{
+            minWidth: '2em',
+            paddingRight: '0.8em',
+            color: '#999',
+            fontSize: '11px'
+          }}
+        >
           {data.codeSnippet}
-        </pre>
+        </SyntaxHighlighter>
         <button className="gists-cards__view-chip" aria-label={viewText}>
           {viewText}
         </button>

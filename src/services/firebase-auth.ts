@@ -157,11 +157,16 @@ export class FirebaseAuthService {
    */
   getGitHubApiHeaders(): Record<string, string> {
     const token = this.getStoredToken();
-    return {
+    console.log('Building headers with token:', token ? 'Token present' : 'No token');
+    
+    const headers = {
       'Authorization': token ? `Bearer ${token}` : '',
       'Accept': 'application/vnd.github.v3+json',
       'Content-Type': 'application/json',
     };
+    
+    console.log('Final headers:', headers);
+    return headers;
   }
 }
 

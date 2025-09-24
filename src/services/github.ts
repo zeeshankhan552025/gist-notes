@@ -71,16 +71,28 @@ class GitHubService {
 
   async searchGistById(gistId: string): Promise<GitHubGist | null> {
     try {
-      const response = await fetch(`${this.baseURL}/gists/${gistId}`)
+      // Try with authentication first for private gists
+      const headers = firebaseAuthService.getGitHubApiHeaders()
+      const useAuth = headers.Authorization !== ''
+      
+      const response = await fetch(`${this.baseURL}/gists/${gistId}`, {
+        headers: useAuth ? headers : {}
+      })
+      
+      console.log(`Fetching gist ${gistId} with auth: ${useAuth}, status: ${response.status}`)
       
       if (!response.ok) {
         if (response.status === 404) {
           return null
         }
+        const errorText = await response.text()
+        console.error(`Error fetching gist ${gistId}:`, errorText)
         throw new Error(`GitHub API error: ${response.status}`)
       }
 
-      return await response.json()
+      const gist = await response.json()
+      console.log(`Gist ${gistId} content loaded:`, Object.keys(gist.files))
+      return gist
     } catch (error) {
       console.error('Error searching gist:', error)
       throw error
@@ -121,21 +133,26 @@ class GitHubService {
   async fetchAuthenticatedUserGists(page: number = 1): Promise<GitHubGistResponse> {
     try {
       const headers = firebaseAuthService.getGitHubApiHeaders()
+      console.log('Fetching gists with headers:', headers)
       
       if (!headers.Authorization) {
         throw new Error('No authentication token available')
       }
 
-      const response = await fetch(
-        `${this.baseURL}/gists?page=${page}&per_page=${this.perPage}`,
-        { headers }
-      )
+      const url = `${this.baseURL}/gists?page=${page}&per_page=${this.perPage}`
+      console.log('Fetching gists from URL:', url)
+      
+      const response = await fetch(url, { headers })
+      console.log('Gists API response status:', response.status)
 
       if (!response.ok) {
-        throw new Error(`GitHub API error: ${response.status}`)
+        const errorText = await response.text()
+        console.log('Gists API error response:', errorText)
+        throw new Error(`GitHub API error: ${response.status} - ${errorText}`)
       }
 
       const gists: GitHubGist[] = await response.json()
+      console.log('Raw gists data:', gists)
       
       const linkHeader = response.headers.get('link')
       const hasNext = linkHeader ? linkHeader.includes('rel="next"') : false
@@ -247,18 +264,24 @@ class GitHubService {
   async getAuthenticatedUser(): Promise<any> {
     try {
       const headers = firebaseAuthService.getGitHubApiHeaders()
+      console.log('API Headers:', headers)
       
       if (!headers.Authorization) {
         throw new Error('No authentication token available')
       }
 
       const response = await fetch(`${this.baseURL}/user`, { headers })
+      console.log('GitHub API response status:', response.status)
 
       if (!response.ok) {
-        throw new Error(`GitHub API error: ${response.status}`)
+        const errorText = await response.text()
+        console.log('GitHub API error response:', errorText)
+        throw new Error(`GitHub API error: ${response.status} - ${errorText}`)
       }
 
-      return await response.json()
+      const userData = await response.json()
+      console.log('GitHub API user data:', userData)
+      return userData
     } catch (error) {
       console.error('Error fetching authenticated user:', error)
       throw error

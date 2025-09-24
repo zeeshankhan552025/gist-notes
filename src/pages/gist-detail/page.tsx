@@ -1,10 +1,7 @@
 import { GitFork, Star } from "lucide-react"
+import { useParams } from "react-router-dom"
 import "./gist-detail.scss"
 import GistEditor from "../../components/gist-editor"
-
-type PageProps = {
-  params: { id: string }
-}
 
 function getInitials(name: string) {
   const parts = name.trim().split(/\s+/)
@@ -13,7 +10,9 @@ function getInitials(name: string) {
   return (a + b).toUpperCase()
 }
 
-export default function GistDetailPage({  }: PageProps) {
+export default function GistDetailPage() {
+  const { gistId } = useParams<{ gistId: string }>()
+  
   // Mock data – replace with real data when backend is ready
   const userName = "John Doe"
   const gistName = "gist_name"
