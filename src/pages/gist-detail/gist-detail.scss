@@ -1,0 +1,147 @@
+/* BEM SCSS for Gist detail page (no Tailwind) */
+/* Palette: exactly 5 colors */
+$brand-teal: #0e6e74;
+$text-strong: #0f1e28;
+$text-muted: #667085;
+$border: #e5e7eb;
+$surface: #f8fafc;
+
+.gist-detail {
+  max-width: 1100px;
+  margin: 24px auto 56px;
+  padding: 0 16px;
+  color: $text-strong;
+
+  &__header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 16px;
+  }
+
+  &__author {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  &__avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 999px;
+    background: $brand-teal;
+    color: white;
+    font-weight: 600;
+    font-size: 14px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    letter-spacing: 0.3px;
+    user-select: none;
+  }
+
+  &__title {
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+    font-size: 16px;
+    font-weight: 600;
+
+    .gist-detail__name {
+      color: $text-strong;
+    }
+    .gist-detail__sep {
+      color: $text-muted;
+    }
+    .gist-detail__gist {
+      color: $text-strong;
+    }
+  }
+
+  &__meta {
+    margin-top: 2px;
+    font-size: 12px;
+    color: $text-muted;
+  }
+
+  &__desc {
+    margin-top: 2px;
+    font-size: 12px;
+    color: $text-muted;
+  }
+
+  &__actions {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+
+  /* Generic button */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    height: 32px;
+    padding: 0 10px;
+    border-radius: 6px;
+    border: 1px solid $border;
+    background: white;
+    color: $text-strong;
+    cursor: pointer;
+
+    &:hover {
+      border-color: darken($border, 5%);
+      background: $surface;
+    }
+
+    &__icon {
+      display: inline-flex;
+    }
+
+    &__count {
+      margin-left: 4px;
+      padding: 0 6px;
+      height: 22px;
+      display: inline-flex;
+      align-items: center;
+      border-radius: 5px;
+      border: 1px solid $border;
+      background: white;
+      font-size: 12px;
+      color: $text-strong;
+    }
+  }
+
+  &__file {
+    border: 1px solid $border;
+    border-radius: 8px;
+    overflow: hidden;
+    background: white;
+  }
+
+  &__filetab {
+    height: 38px;
+    border-bottom: 1px solid $border;
+    background: $surface;
+    color: $text-muted;
+    font-size: 13px;
+    display: flex;
+    align-items: center;
+    padding: 0 12px;
+  }
+
+  &__editor {
+    /* Monaco lives inside, keep border radius consistent */
+    .gist-editor {
+      .monaco-editor,
+      .monaco-editor-background {
+        background: white !important;
+      }
+      .margin {
+        background: white !important; /* gutter bg */
+      }
+    }
+  }
+}

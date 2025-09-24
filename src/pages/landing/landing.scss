@@ -1,0 +1,165 @@
+.landing {
+  min-height: 100vh;
+  background-color: #f6f8fa;
+
+  &__container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem 1rem;
+  }
+
+  &__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 2rem;
+    gap: 2rem;
+  }
+
+  &__header-left {
+    flex: 1;
+  }
+
+  &__title {
+    font-size: 2.5rem;
+    font-weight: 600;
+    color: #24292f;
+    margin: 0 0 0.5rem 0;
+    line-height: 1.2;
+  }
+
+  &__subtitle {
+    font-size: 1.125rem;
+    color: #656d76;
+    margin: 0 0 1rem 0;
+    line-height: 1.5;
+  }
+
+  &__view-switch {
+    display: flex;
+    border: 1px solid #d1d9e0;
+    border-radius: 6px;
+    overflow: hidden;
+    background: #fff;
+  }
+
+  &__icon-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 32px;
+    border: none;
+    background: transparent;
+    color: #656d76;
+    cursor: pointer;
+    transition: all 0.2s ease;
+
+    &:hover {
+      background-color: #f3f4f6;
+      color: #24292f;
+    }
+
+    &--active {
+      background-color: #0969da;
+      color: #fff;
+
+      &:hover {
+        background-color: #0958d9;
+        color: #fff;
+      }
+    }
+
+    svg {
+      pointer-events: none;
+    }
+  }
+
+  &__content {
+    min-height: 400px;
+    margin-bottom: 2rem;
+  }
+
+  &__loading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 4rem 0;
+    color: #656d76;
+
+    p {
+      margin-top: 1rem;
+      font-size: 1rem;
+    }
+  }
+
+  &__pagination {
+    display: flex;
+    justify-content: center;
+    padding: 2rem 0;
+    border-top: 1px solid #d1d9e0;
+
+    .ant-pagination {
+      .ant-pagination-item {
+        border-radius: 6px;
+      }
+
+      .ant-pagination-item-active {
+        background-color: #0969da;
+        border-color: #0969da;
+
+        a {
+          color: #fff;
+        }
+      }
+
+      .ant-pagination-prev,
+      .ant-pagination-next {
+        .ant-pagination-item-link {
+          border-radius: 6px;
+        }
+      }
+    }
+  }
+}
+
+// Responsive design
+@media (max-width: 768px) {
+  .landing {
+    &__container {
+      padding: 1rem 0.5rem;
+    }
+
+    &__header {
+      flex-direction: column;
+      align-items: stretch;
+      gap: 1rem;
+    }
+
+    &__title {
+      font-size: 2rem;
+    }
+
+    &__subtitle {
+      font-size: 1rem;
+    }
+
+    &__view-switch {
+      align-self: flex-end;
+      width: fit-content;
+    }
+  }
+}
+
+@media (max-width: 480px) {
+  .landing {
+    &__title {
+      font-size: 1.75rem;
+    }
+
+    &__header {
+      margin-bottom: 1.5rem;
+    }
+  }
+}

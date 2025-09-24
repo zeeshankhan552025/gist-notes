@@ -1,0 +1,223 @@
+/* BEM + 5-color palette aligned to reference */
+$brand-teal: #0b3f46;
+$surface: #ffffff;
+$neutral-50: #f4f6f7;
+$neutral-200: #e6ecef;
+$text-ink: #2e3d42;
+
+.gists-cards {
+  padding: 24px 32px 32px;
+  background: $neutral-50;
+  color: $text-ink;
+  
+
+  &__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+  }
+
+  &__title {
+    margin: 0;
+    font-size: 22px;
+    font-weight: 600;
+    letter-spacing: 0.2px;
+  }
+
+  &__toolbar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: auto; // no fixed width when search removed
+  }
+
+  &__search {
+    flex: 1;
+  }
+
+  &__view-toggle {
+    display: flex;
+    gap: 8px;
+  }
+
+  &__toggle-btn {
+    border-color: $neutral-200;
+
+    &--active,
+    &:hover {
+      color: $brand-teal;
+      border-color: $brand-teal;
+    }
+  }
+
+  &__grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 16px;
+    margin-top: 8px;
+
+    @media (max-width: 1080px) {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    @media (max-width: 680px) {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  &__card {
+    background: $surface;
+    border: 1px solid $neutral-200;
+    border-radius: 6px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+
+    &:hover {
+      box-shadow: 0 1px 0 rgba(0,0,0,0.02), 0 2px 8px rgba(0,0,0,0.04);
+    }
+  }
+
+  &__code {
+    position: relative; // for chip
+    display: grid;
+    grid-template-columns: 28px 1fr;
+    gap: 0;
+    border-bottom: 1px solid $neutral-200;
+    background: $surface;
+    padding: 0; // we'll pad children
+  }
+
+  &__gutter {
+    margin: 0;
+    padding: 12px 8px 12px 8px;
+    list-style: none;
+    border-right: 1px solid $neutral-200;
+    color: rgba($text-ink, 0.55);
+    li {
+      line-height: 1.45;
+      font: 12px/1.45 ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    }
+  }
+
+  &__code-pre {
+    margin: 0;
+    padding: 12px 12px 12px 12px;
+    font: 12px/1.45 ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    color: $text-ink;
+    max-height: 160px;
+    overflow: hidden;
+    white-space: pre;
+  }
+
+  &__view-chip {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    padding: 4px 8px;
+    font-size: 11px;
+    line-height: 1;
+    border-radius: 4px;
+    border: 1px solid transparent;
+    background: $brand-teal;
+    color: #fff;
+    cursor: pointer;
+    &:hover {
+      filter: brightness(1.05);
+    }
+  }
+
+  &__meta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 12px;
+    gap: 8px;
+  }
+
+  &__author {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+
+    .ant-avatar {
+      font-weight: 700; // make initials legible
+      line-height: 28px;
+    }
+  }
+
+  &__author-text {
+    min-width: 0;
+  }
+
+  &__name {
+    font-size: 14px;
+    font-weight: 600;
+    color: $text-ink;
+    min-width: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  &__name-author {
+    color: $text-ink;
+  }
+  &__name-sep {
+    opacity: 0.5;
+  }
+  &__name-gist {
+    color: $text-ink;
+  }
+
+  &__subtext {
+    display: flex;
+    gap: 8px;
+    font-size: 12px;
+    color: rgba($text-ink, 0.75);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  &__desc {
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  &__dot {
+    opacity: 0.5;
+  }
+
+  &__actions {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  &__action-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border: 1px solid $neutral-200;
+    border-radius: 4px;
+    background: $surface;
+    color: $text-ink;
+    cursor: pointer;
+    transition: all 120ms ease-in-out;
+
+    &:hover {
+      color: $brand-teal;
+      border-color: $brand-teal;
+    }
+  }
+
+  &__footer {
+    display: flex;
+    justify-content: center;
+    margin-top: 16px;
+  }
+}

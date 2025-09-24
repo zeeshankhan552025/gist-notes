@@ -1,0 +1,151 @@
+// Palette (3-5 colors total)
+$color-brand: #0b3a3b; // deep teal topbar
+$color-accent: #0f6a68; // teal for hover/pills
+$neutral-100: #f5f6f7; // table header / pagination bg
+$neutral-300: #e5e7eb; // borders / dividers
+$neutral-700: #465056; // subdued text
+
+// Page container
+.gists {
+
+
+  &__container {
+    margin-top: 16px;
+    max-width: 1200px;
+    margin: 32px auto;
+    padding: 0 24px;
+  }
+
+  &__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+  }
+
+  &__title {
+    font-size: 24px;
+    line-height: 1.2;
+    color: #111;
+    margin: 0;
+  }
+
+  &__view-switch {
+    display: flex;
+    gap: 8px;
+  }
+
+  &__icon-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border: 1px solid $neutral-300;
+    border-radius: 6px;
+    background: #fff;
+    color: #111;
+    cursor: pointer;
+
+    &:hover {
+      background: #fafbfb;
+    }
+
+    &:focus {
+      outline: 2px solid $color-accent;
+      outline-offset: 2px;
+    }
+  }
+}
+
+
+// Table area
+.gists-table {
+  background: #fff;
+  border: 1px solid $neutral-300;
+  border-radius: 8px;
+  overflow: hidden;
+
+  &__antd {
+    .ant-table {
+      border-radius: 0;
+    }
+
+    .ant-table-thead>tr>th {
+      background: $neutral-100 !important;
+      color: #1b1f23;
+      font-weight: 600;
+    }
+
+    .ant-table-container table>thead>tr:first-child th:first-child {
+      border-start-start-radius: 0;
+    }
+
+    .ant-table-container table>thead>tr:first-child th:last-child {
+      border-start-end-radius: 0;
+    }
+
+    .ant-table-tbody>tr>td {
+      border-color: $neutral-300;
+    }
+
+    .ant-table-tbody>tr:hover>td {
+      background: #fafbfb;
+    }
+  }
+
+  &__user {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  &__user-name {
+    color: #111;
+  }
+
+  &__notebook,
+  &__updated {
+    color: $neutral-700;
+  }
+
+  // Keyword pill
+  &__badge {
+    display: inline-block;
+    padding: 2px 10px;
+    font-size: 12px;
+    line-height: 1.4;
+    color: #fff;
+    background: $color-brand;
+    border-radius: 999px;
+  }
+
+  // Pagination bar
+  &__pagination {
+    border-top: 1px solid $neutral-300;
+    background: $neutral-100;
+    padding: 8px 12px;
+  }
+
+  &__pagination-inner {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 8px;
+
+    .ant-btn {
+      border: 1px solid $neutral-300;
+    }
+  }
+
+  &__page-indicator {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: $neutral-700;
+
+    strong {
+      color: #111;
+    }
+  }
+}

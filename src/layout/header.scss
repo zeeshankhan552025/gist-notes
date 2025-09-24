@@ -1,0 +1,150 @@
+.topbar {
+  background: #0b3a3b; // Brand teal color
+  color: #fff;
+  border-bottom: 1px solid #d1d9e0;
+  padding: 0 1rem;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+
+  &__inner {
+    margin: 0 50px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 64px;
+  }
+
+  &__brand {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-weight: 600;
+    color: #ffffff;
+    cursor: pointer;
+
+    img {
+      height: 32px;
+      width: auto;
+    }
+  }
+
+  &__name {
+    font-size: 1.25rem;
+    letter-spacing: -0.025em;
+  }
+
+  &__right {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  &__search {
+    .ant-input-affix-wrapper {
+      width: 300px;
+      border-radius: 6px;
+      background: rgba(255, 255, 255, 0.1);
+      border-color: rgba(255, 255, 255, 0.2);
+      
+      &:focus-within {
+        border-color: #40a9ff;
+        box-shadow: 0 0 0 3px rgba(64, 169, 255, 0.1);
+        background: rgba(255, 255, 255, 0.15);
+      }
+
+      &:hover {
+        border-color: rgba(255, 255, 255, 0.3);
+        background: rgba(255, 255, 255, 0.12);
+      }
+    }
+
+    .ant-input {
+      border: none;
+      box-shadow: none;
+      background: transparent;
+      color: #fff;
+      
+      &::placeholder {
+        color: rgba(255, 255, 255, 0.65);
+      }
+      
+      &:focus {
+        box-shadow: none;
+      }
+    }
+
+    .anticon {
+      color: rgba(255, 255, 255, 0.65);
+    }
+  }
+
+  &__actions {
+    display: flex;
+    align-items: center;
+  }
+
+  &__login {
+    border-radius: 6px;
+    height: 36px;
+    padding: 0 1rem;
+    font-weight: 500;
+    background-color: #ffffff !important;
+    color: #003B44 !important;
+    border-color: #ffffff !important;
+    
+    &:hover {
+      background-color: #f5f5f5 !important;
+      color: #003B44 !important;
+      border-color: #f5f5f5 !important;
+    }
+    
+    &:focus {
+      background-color: #ffffff !important;
+      color: #003B44 !important;
+      border-color: #40a9ff !important;
+      box-shadow: 0 0 0 2px rgba(64, 169, 255, 0.2) !important;
+    }
+  }
+
+  &__user-menu {
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    
+    &:hover {
+      opacity: 0.8;
+    }
+  }
+}
+
+// Responsive design
+@media (max-width: 768px) {
+  .topbar {
+    padding: 0 0.5rem;
+
+    &__inner {
+      gap: 0.5rem;
+    }
+
+    &__search {
+      .ant-input-affix-wrapper {
+        width: 200px;
+      }
+    }
+
+    &__name {
+      display: none;
+    }
+  }
+}
+
+@media (max-width: 480px) {
+  .topbar {
+    &__search {
+      .ant-input-affix-wrapper {
+        width: 150px;
+      }
+    }
+  }
+}

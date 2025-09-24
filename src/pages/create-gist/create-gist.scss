@@ -1,0 +1,142 @@
+/* Palette: keep to 5 colors total */
+$brand-teal: #0e4b4b;
+$neutral-900: #101113;
+$neutral-700: #3a3d42;
+$neutral-300: #d8dadd;
+$neutral-100: #f5f6f7;
+$danger-500: #e5484d;
+
+.gist-create {
+  max-width: 980px;
+  margin: 24px auto;
+  padding: 0 16px;
+  color: $neutral-900;
+
+  &__title {
+    font-size: 22px;
+    font-weight: 600;
+    margin-bottom: 16px;
+  }
+
+  &__form {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  &__label {
+    font-size: 12px;
+    color: $neutral-700;
+  }
+
+  &__description {
+    height: 40px;
+    border: 1px solid $neutral-300;
+    background: #fff;
+    border-radius: 6px;
+    padding: 0 12px;
+    outline: none;
+
+    &:focus {
+      border-color: $brand-teal;
+      box-shadow: 0 0 0 3px rgba(14, 75, 75, 0.12);
+    }
+  }
+
+  &__files {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  &__actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 8px;
+  }
+}
+
+/* Reusable buttons */
+.btn {
+  appearance: none;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  padding: 8px 14px;
+  font-size: 14px;
+  line-height: 1;
+  cursor: pointer;
+
+  &--ghost {
+    background: #fff;
+    color: $neutral-700;
+    border-color: $neutral-300;
+
+    &:hover { border-color: $brand-teal; color: $brand-teal; }
+  }
+
+  &--primary {
+    background: $brand-teal;
+    color: #fff;
+
+    &:hover { filter: brightness(1.02); }
+  }
+}
+
+/* File block */
+.gist-file {
+  border: 1px solid $neutral-300;
+  border-radius: 8px;
+  background: #fff;
+
+  &__header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 12px;
+    border-bottom: 1px solid $neutral-300;
+    background: $neutral-100;
+    border-top-left-radius: 8px;
+    border-top-right-radius: 8px;
+  }
+
+  &__filename {
+    flex: 1;
+    height: 36px;
+    border: 1px solid $neutral-300;
+    background: #fff;
+    border-radius: 6px;
+    padding: 0 10px;
+    outline: none;
+
+    &:focus {
+      border-color: $brand-teal;
+      box-shadow: 0 0 0 3px rgba(14, 75, 75, 0.12);
+    }
+  }
+
+  &__remove {
+    width: 32px;
+    height: 32px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid transparent;
+    background: transparent;
+    color: $danger-500;
+    border-radius: 6px;
+
+    &:hover {
+      border-color: rgba(229, 72, 77, 0.4);
+      background: rgba(229, 72, 77, 0.06);
+    }
+  }
+
+  &__editor {
+    padding: 8px 8px 12px;
+  }
+
+  &__editor-inner {
+    /* Monaco wrapper additional spacing if needed */
+  }
+}
