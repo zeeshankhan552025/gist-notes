@@ -13,7 +13,7 @@ function getInitials(name: string) {
   return (a + b).toUpperCase()
 }
 
-export default function GistDetailPage({ params }: PageProps) {
+export default function GistDetailPage({  }: PageProps) {
   // Mock data – replace with real data when backend is ready
   const userName = "John Doe"
   const gistName = "gist_name"

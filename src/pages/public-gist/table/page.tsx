@@ -1,8 +1,5 @@
 import { Header } from "../../../layout/header"
-import CreateGistPage from "../../create-gist/page"
-import GistDetailPage from "../../gist-detail/page"
 import ProfilePage from "../../profile/page"
-import PublicGistsCardsPage from "../card/page"
 import "./public-gist-table-view.scss"
 
 export default function PublicGistsPage() {

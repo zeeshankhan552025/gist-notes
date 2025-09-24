@@ -1,6 +1,6 @@
 import { useState } from "react"
 import { Input, Button, Avatar, Dropdown, message } from "antd"
-import { SearchOutlined, UserOutlined, LogoutOutlined, SettingOutlined, GithubOutlined } from "@ant-design/icons"
+import { SearchOutlined, UserOutlined, LogoutOutlined, SettingOutlined } from "@ant-design/icons"
 import type { MenuProps } from "antd"
 import { githubService } from "../services/github"
 import { useAuth } from "../contexts/AuthContext"

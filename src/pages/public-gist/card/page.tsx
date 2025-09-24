@@ -1,10 +1,9 @@
 "use client"
+import { Pagination } from "antd"
 import "antd/dist/reset.css"
-import { Pagination, Tooltip, Button } from "antd"
-import { AppstoreOutlined, UnorderedListOutlined } from "@ant-design/icons"
-import "./public-gist-card-view.scss"
 import type { GistCardData } from "../../../components/gist-card"
 import GistCard from "../../../components/gist-card"
+import "./public-gist-card-view.scss"
 
 const mockGists: GistCardData[] = [
   {
