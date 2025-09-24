@@ -3,7 +3,6 @@ import { Button, Pagination, Spin, message } from "antd"
 import { Header } from "../../layout/header"
 import { PublicGistsTable } from "../../components/public-gists-table"
 import { PublicGistsGrid } from "../../components/public-gists-grid"
-import AuthDebugPanel from "../../components/auth-debug-panel"
 import { githubService, type GitHubGist } from "../../services/github"
 import "./landing.scss"
 
@@ -53,9 +52,6 @@ export default function LandingPage() {
   return (
     <main className="landing">
       <Header />
-      
-      {/* Temporary Debug Panel - Remove after testing */}
-      <AuthDebugPanel />
       
       <div className="landing__container">
         <header className="landing__header">

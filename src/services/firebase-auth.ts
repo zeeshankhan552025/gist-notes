@@ -24,8 +24,6 @@ export class FirebaseAuthService {
     this.provider.setCustomParameters({
       'allow_signup': 'true'
     });
-    
-    console.log("GitHub Auth Provider initialized with scopes: gist, read:user, public_repo");
   }
 
   /**
@@ -33,26 +31,15 @@ export class FirebaseAuthService {
    */
   async loginWithGithub(): Promise<{ user: AuthUser; token: string } | null> {
     try {
-      console.log("Starting GitHub login...");
-      console.log("Using Firebase Auth with GitHub provider");
-      
       const result = await signInWithPopup(auth, this.provider);
-      console.log("Sign-in successful:", result);
       
       // Get the GitHub access token
       const credential = GithubAuthProvider.credentialFromResult(result);
-      console.log("Credential object:", credential);
-      
       const token = credential?.accessToken;
-      console.log("Access token:", token ? "Token received" : "No token received");
       
       if (!token) {
-        console.error("No access token in credential:", credential);
         throw new Error("Failed to get GitHub access token from credential");
       }
-
-      console.log("GitHub Access Token:", token);
-      console.log("User Info:", result.user);
 
       // Store token in localStorage
       this.storeToken(token);
