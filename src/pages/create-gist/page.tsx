@@ -2,16 +2,18 @@ import type React from "react"
 
 import { useState } from "react"
 import { useNavigate } from "react-router-dom"
+import { Header } from "../../layout/header"
 import "./create-gist.scss"
 import GistFileEditor, { type GistFile } from "../../components/gist-file-editor"
 import { githubService } from "../../services/github"
-import { firebaseAuthService } from "../../services/firebase-auth"
+import { useAuth } from "../../contexts/AuthContext"
 import { v4 as uuidv4 } from "uuid"
 
 export default function CreateGistPage() {
   const navigate = useNavigate()
+  const { isAuthenticated } = useAuth()
   const [description, setDescription] = useState<string>("")
-  const [isPublic, setIsPublic] = useState<boolean>(true)
+  const [isPublic,] = useState<boolean>(true)
   const [isCreating, setIsCreating] = useState<boolean>(false)
   const [error, setError] = useState<string>("")
   const [success, setSuccess] = useState<string>("")
@@ -43,7 +45,7 @@ export default function CreateGistPage() {
     setSuccess("")
 
     // Check if user is authenticated
-    if (!firebaseAuthService.isAuthenticated()) {
+    if (!isAuthenticated) {
       setError("Please log in with GitHub to create gists.")
       return
     }
@@ -118,7 +120,9 @@ export default function CreateGistPage() {
   }
 
   return (
-    <main className="gist-create" role="main" aria-labelledby="create-gist-title">
+    <>
+      <Header />
+      <main className="gist-create" role="main" aria-labelledby="create-gist-title">
       <h1 id="create-gist-title" className="gist-create__title">
         Create Gist
       </h1>
@@ -148,21 +152,6 @@ export default function CreateGistPage() {
           disabled={isCreating}
         />
 
-        <div className="gist-create__visibility">
-          <label className="gist-create__label">
-            <input
-              type="checkbox"
-              checked={isPublic}
-              onChange={(e) => setIsPublic(e.target.checked)}
-              disabled={isCreating}
-            />
-            Public gist (visible to everyone)
-          </label>
-          <p className="gist-create__visibility-help">
-            {isPublic ? "Anyone can see this gist" : "Only you can see this gist"}
-          </p>
-        </div>
-
         <div className="gist-create__files">
           {files.map((file) => (
             <GistFileEditor 
@@ -185,5 +174,6 @@ export default function CreateGistPage() {
         </div>
       </form>
     </main>
+    </>
   )
 }

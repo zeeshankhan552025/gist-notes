@@ -1,7 +1,8 @@
-import { Avatar, Tooltip } from "antd"
-import { ForkOutlined, StarOutlined } from "@ant-design/icons"
+import { EyeOutlined } from "@ant-design/icons"
+import { Avatar, Skeleton, Tooltip } from "antd"
+import { useNavigate } from "react-router-dom"
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter'
-import { oneLight } from 'react-syntax-highlighter/dist/esm/styles/prism'
+import { tomorrow } from 'react-syntax-highlighter/dist/esm/styles/prism'
 
 export type GistCardData = {
   id: string
@@ -12,9 +13,18 @@ export type GistCardData = {
   codeSnippet: string
   viewLabel?: string
   language?: string
+  avatarUrl?: string
+  gistUrl?: string
 }
 
-export default function GistCard({ data }: { data: GistCardData }) {
+interface GistCardProps {
+  data: GistCardData
+  loading?: boolean
+}
+
+export default function GistCard({ data, loading = false }: GistCardProps) {
+  const navigate = useNavigate();
+  
   const initials =
     data.authorName
       .split(" ")
@@ -23,6 +33,21 @@ export default function GistCard({ data }: { data: GistCardData }) {
       .slice(0, 2)
       .join("")
       .toUpperCase() || "U"
+
+  // Handle card click to navigate to detail page
+  const handleCardClick = () => {
+    if (!loading && data.id) {
+      navigate(`/gist/${data.id}`);
+    }
+  };
+
+  // Handle view button click to open gist in new tab (keep original behavior)
+  const handleViewClick = (e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent card click when view button is clicked
+    if (data.gistUrl) {
+      window.open(data.gistUrl, '_blank', 'noopener,noreferrer')
+    }
+  };
 
   const getLanguageFromFilename = (filename: string): string => {
     const extension = filename.split('.').pop()?.toLowerCase()
@@ -55,77 +80,150 @@ export default function GistCard({ data }: { data: GistCardData }) {
     return languageMap[extension || ''] || 'text'
   }
 
-  const viewText = `View ${data.viewLabel ?? "vercel_package.json"}`
+  const truncateFilename = (filename: string, maxLength: number = 20): string => {
+    if (filename.length <= maxLength) {
+      return filename
+    }
+    return filename.substring(0, maxLength - 3) + '...'
+  }
+
+  const filename = data?.viewLabel ?? "vercel_package.json"
+  const truncatedFilename = truncateFilename(filename)
+  const viewText = `View ${truncatedFilename}`
+
+  // Render skeleton card when loading
+  if (loading) {
+    return (
+      <article className="gist-card gist-card--skeleton" aria-label="Loading gist...">
+        {/* Skeleton view button */}
+        <div className="gist-card__view-button-container">
+          <Skeleton.Button style={{ width: 120, height: 32, borderRadius: 6 }} active />
+        </div>
+        
+        <div className="gist-card__code">
+          <div className="gist-card__code-skeleton">
+            <div className="gist-card__code-line-numbers">
+              <Skeleton.Input style={{ width: 20, height: 16, marginBottom: 4 }} active />
+              <Skeleton.Input style={{ width: 20, height: 16, marginBottom: 4 }} active />
+              <Skeleton.Input style={{ width: 20, height: 16, marginBottom: 4 }} active />
+              <Skeleton.Input style={{ width: 20, height: 16, marginBottom: 4 }} active />
+              <Skeleton.Input style={{ width: 20, height: 16, marginBottom: 4 }} active />
+            </div>
+            <div className="gist-card__code-content">
+              <Skeleton.Input style={{ width: '90%', height: 16, marginBottom: 4 }} active />
+              <Skeleton.Input style={{ width: '75%', height: 16, marginBottom: 4 }} active />
+              <Skeleton.Input style={{ width: '85%', height: 16, marginBottom: 4 }} active />
+              <Skeleton.Input style={{ width: '60%', height: 16, marginBottom: 4 }} active />
+              <Skeleton.Input style={{ width: '80%', height: 16, marginBottom: 4 }} active />
+              <Skeleton.Input style={{ width: '70%', height: 16, marginBottom: 4 }} active />
+            </div>
+          </div>
+          <div className="gist-card__code-fade"></div>
+        </div>
+
+        <div className="gist-card__meta">
+          <div className="gist-card__author">
+            <Skeleton.Avatar size={32} active />
+            <div className="gist-card__author-info">
+              <div className="gist-card__author-name">
+                <Skeleton.Input style={{ width: 200, height: 16, marginBottom: 4 }} active />
+              </div>
+              <div className="gist-card__details">
+                <Skeleton.Input style={{ width: 150, height: 14 }} active />
+              </div>
+            </div>
+          </div>
+        </div>
+      </article>
+    )
+  }
 
   return (
-    <article className="gists-cards__card" aria-label={`${data.authorName} / ${data.gistName}`}>
-      <div className="gists-cards__code">
+    <article 
+      className={`gist-card ${!loading ? 'gist-card--clickable' : ''}`} 
+      aria-label={`${data.authorName} / ${data.gistName}`}
+      onClick={handleCardClick}
+      style={{ cursor: loading ? 'default' : 'pointer' }}
+    >
+      {/* Top-right view button */}
+      <div className="gist-card__view-button-container">
+        <Tooltip title={`View ${filename}`}>
+          <button 
+            className="gist-card__view-btn" 
+            aria-label={viewText}
+            onClick={handleViewClick}
+            disabled={!data.gistUrl}
+          >
+            <EyeOutlined />
+            <span className="gist-card__view-text">{viewText}</span>
+          </button>
+        </Tooltip>
+      </div>
+      
+      <div className="gist-card__code">
         <SyntaxHighlighter
           language={data.language || getLanguageFromFilename(data.gistName)}
-          style={oneLight}
+          style={tomorrow}
           showLineNumbers={true}
           customStyle={{
             margin: 0,
-            padding: '12px',
-            fontSize: '12px',
-            lineHeight: '1.3',
-            backgroundColor: '#fafafa',
+            padding: '16px',
+            fontSize: '13px',
+            lineHeight: '1.4',
+            backgroundColor: 'transparent',
             border: 'none',
-            borderRadius: '6px 6px 0 0'
+            borderRadius: '0',
+            maxHeight: '200px',
+            overflow: 'hidden'
           }}
           lineNumberStyle={{
-            minWidth: '2em',
-            paddingRight: '0.8em',
-            color: '#999',
-            fontSize: '11px'
+            minWidth: '2.5em',
+            paddingRight: '1em',
+            color: '#6b7280',
+            fontSize: '12px',
+            userSelect: 'none'
           }}
         >
           {data.codeSnippet}
         </SyntaxHighlighter>
-        <button className="gists-cards__view-chip" aria-label={viewText}>
-          {viewText}
-        </button>
+        <div className="gist-card__code-fade"></div>
       </div>
 
-      <div className="gists-cards__meta">
-        <div className="gists-cards__author">
+      <div className="gist-card__meta">
+        <div className="gist-card__author">
           <Avatar
-            size={28}
-            style={{ backgroundColor: "#0b3f46", color: "#ffffff" }}
+            size={32}
+            src={data.avatarUrl}
+            style={{ 
+              flexShrink: 0,
+              backgroundColor: data.avatarUrl ? 'transparent' : "#0b3f46",
+              color: "#ffffff", 
+              fontWeight: "600" 
+            }}
             aria-label={`${data.authorName} avatar`}
           >
             {initials}
           </Avatar>
-          <div className="gists-cards__author-text">
-            <div className="gists-cards__name" title={`${data.authorName} / ${data.gistName}`}>
-              <span className="gists-cards__name-author">{data.authorName}</span>
-              <span className="gists-cards__name-sep"> / </span>
-              <span className="gists-cards__name-gist">{data.gistName}</span>
+          <div className="gist-card__author-info">
+            <div className="gist-card__author-name" title={`${data.authorName} / ${data.gistName}`}>
+              <span className="gist-card__username">{data.authorName}</span>
+              <span className="gist-card__separator"> / </span>
+              <span className="gist-card__gist-name">{data.gistName}</span>
             </div>
-            <div className="gists-cards__subtext">
-              <span className="gists-cards__created">{data.createdAt}</span>
-              <span className="gists-cards__dot" aria-hidden="true">
-                •
-              </span>
-              <span className="gists-cards__desc" title={data.description}>
-                {data.description}
-              </span>
+            <div className="gist-card__details">
+              <span className="gist-card__created">{data.createdAt}</span>
+              {data.description && (
+                <>
+                  <span className="gist-card__dot" aria-hidden="true">•</span>
+                  <span className="gist-card__description" title={data.description}>
+                    {data.description}
+                  </span>
+                </>
+              )}
             </div>
           </div>
         </div>
 
-        <div className="gists-cards__actions" aria-label="Actions">
-          <Tooltip title="Fork">
-            <button className="gists-cards__action-btn" aria-label="Fork gist">
-              <ForkOutlined />
-            </button>
-          </Tooltip>
-          <Tooltip title="Star">
-            <button className="gists-cards__action-btn" aria-label="Star gist">
-              <StarOutlined />
-            </button>
-          </Tooltip>
-        </div>
       </div>
     </article>
   )

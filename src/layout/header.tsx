@@ -37,27 +37,139 @@ export function Header({ onSearchResult }: HeaderProps) {
     }
   }
 
-  const handleSearch = async () => {
+  const extractGistId = (input: string): string => {
+    const trimmed = input.trim()
+    
+    // If it's already just an ID (alphanumeric string), return as is
+    if (/^[a-f0-9]+$/i.test(trimmed)) {
+      return trimmed
+    }
+    
+    // Extract from various URL formats:
+    // https://gist.github.com/username/abc123def456
+    // https://api.github.com/gists/abc123def456
+    // abc123def456
+    const urlPatterns = [
+      /gist\.github\.com\/[^\/]+\/([a-f0-9]+)/i,  // gist.github.com/user/id
+      /api\.github\.com\/gists\/([a-f0-9]+)/i,     // api.github.com/gists/id
+      /gists\/([a-f0-9]+)/i,                       // gists/id
+      /([a-f0-9]{20,})/i                          // any long hex string
+    ]
+    
+    for (const pattern of urlPatterns) {
+      const match = trimmed.match(pattern)
+      if (match && match[1]) {
+        return match[1]
+      }
+    }
+    
+    // Return original if no pattern matches
+    return trimmed
+  }
+
+  const handleSearchInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value
+    setSearchValue(value)
+    
+    // If input is cleared, reset search results
+    if (!value.trim() && onSearchResult) {
+      console.log('🔍 Search input cleared, resetting results')
+      onSearchResult({ cleared: true })
+    }
+  }
+
+  const handleSearch = async (e?: React.FormEvent) => {
+    console.log('🔍 Search triggered, input:', searchValue)
+    console.log('🔍 isAuthenticated:', isAuthenticated)
+    console.log('🔍 onSearchResult handler provided:', !!onSearchResult)
+    
+    if (e) {
+      e.preventDefault() // Prevent form submission
+      console.log('🔍 Form submission prevented')
+    }
+    
     if (!searchValue.trim()) {
-      message.warning('Please enter a Gist ID')
+      message.warning('Please enter a Gist ID, URL, or search terms')
       return
     }
 
     try {
       setSearching(true)
-      const gist = await githubService.searchGistById(searchValue.trim())
+      const input = searchValue.trim()
+      console.log('🔍 Processing search input:', input)
       
-      if (gist) {
-        message.success('Gist found!')
-        onSearchResult?.(gist)
-        // Optionally redirect to gist detail page
-        window.open(gist.html_url, '_blank')
+      let results: any[] = []
+      
+      // Check if input looks like a Gist ID or URL
+      const gistId = extractGistId(input)
+      console.log('🔍 Extracted gist ID:', gistId)
+      console.log('🔍 Original input !== extracted ID:', gistId !== input)
+      console.log('🔍 Gist ID length:', gistId.length)
+      
+      if (gistId !== input && gistId.length >= 20) {
+        // It's a URL or valid Gist ID, search by ID
+        console.log('🔍 Searching by Gist ID:', gistId)
+        const gist = await githubService.searchGistById(gistId)
+        if (gist) {
+          console.log('🔍 Found gist by ID:', gist.id)
+          results = [gist]
+        } else {
+          console.log('🔍 No gist found for ID:', gistId)
+        }
+      } else if (isAuthenticated) {
+        // It's search terms, search by content (requires authentication)
+        console.log('🔍 Searching by content:', input)
+        results = await githubService.searchGists(input)
+        console.log('🔍 Content search results:', results.length)
       } else {
-        message.error('Gist not found')
+        // Not authenticated, suggest login for content search
+        console.log('🔍 Not authenticated, showing login message')
+        message.warning('Please log in with GitHub to search gist content, or paste a gist URL/ID for direct access.')
+        return
       }
-    } catch (error) {
-      message.error('Error searching for gist')
-      console.error('Search error:', error)
+      
+      console.log('🔍 Final results:', results.length, results)
+      
+      if (results.length > 0) {
+        console.log('🔍 Search results found:', results)
+        message.success(`Found ${results.length} gist${results.length > 1 ? 's' : ''}!`)
+        if (onSearchResult) {
+          console.log('🔍 Calling onSearchResult handler')
+          // Page will handle showing the results inline
+          if (results.length === 1) {
+            onSearchResult(results[0])
+          } else {
+            // For multiple results, pass the first one or handle differently
+            onSearchResult({ multiple: true, results })
+          }
+        } else {
+          console.log('🔍 No onSearchResult handler, navigating to gist')
+          // No page handler, navigate to first gist detail page
+          navigate(`/gist/${results[0].id}`)
+        }
+        // Clear search input after successful search
+        setSearchValue('')
+      } else {
+        console.log('🔍 No results found')
+        // Still call the handler to let the page know a search was performed
+        if (onSearchResult) {
+          console.log('🔍 Calling onSearchResult with empty results')
+          onSearchResult({ multiple: true, results: [] })
+        }
+        message.error('No gists found. Try different search terms.')
+        console.log('No results found for:', input)
+      }
+    } catch (error: any) {
+      console.error('🔍 Search error:', error)
+      if (error.message && error.message.includes('Authentication required')) {
+        message.error('Please log in with GitHub to search gist content.')
+      } else if (error.message && error.message.includes('404')) {
+        message.error('Gist not found or is private. Please check the Gist ID.')
+      } else if (error.message && error.message.includes('403')) {
+        message.error('Rate limit exceeded. Please try again later.')
+      } else {
+        message.error('Error searching. Please try again.')
+      }
     } finally {
       setSearching(false)
     }
@@ -65,6 +177,7 @@ export function Header({ onSearchResult }: HeaderProps) {
 
   const handleSearchKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter') {
+      e.preventDefault() // Prevent form submission
       handleSearch()
     }
   }
@@ -133,22 +246,26 @@ export function Header({ onSearchResult }: HeaderProps) {
 
         {/* Right side - Search and User actions */}
         <div className="topbar__right">
-          <form className="topbar__search" role="search" aria-label="Search gists by ID">
+          <form className="topbar__search" role="search" aria-label="Search gists by ID" onSubmit={handleSearch}>
             <Input
               allowClear
-              placeholder="Enter Gist ID to search..."
+              placeholder={isAuthenticated 
+                ? "Search gists by content or paste Gist URL/ID... (Try: 'fetch' or test with a real gist ID)" 
+                : "Login to search content, or paste Gist URL/ID... (Try pasting a gist URL)"}
               prefix={<SearchOutlined />}
               suffix={
                 <Button 
                   type="text" 
                   size="small"
                   loading={searching}
-                  onClick={handleSearch}
+                  onClick={() => handleSearch()}
+                  icon={<SearchOutlined />}
+                  aria-label="Search"
                 >
                 </Button>
               }
               value={searchValue}
-              onChange={(e) => setSearchValue(e.target.value)}
+              onChange={handleSearchInputChange}
               onKeyPress={handleSearchKeyPress}
               className="topbar__search-input"
               type="search"

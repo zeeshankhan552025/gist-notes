@@ -1,0 +1,418 @@
+/* Modern Gist Card Styles */
+:root {
+  --gist-card-bg: #ffffff;
+  --gist-card-border: #e1e5e9;
+  --gist-card-hover-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  --gist-card-code-bg: #f8fafc;
+  --gist-card-header-bg: #f1f5f9;
+  --gist-card-text: #1f2937;
+  --gist-card-text-muted: #6b7280;
+  --gist-card-accent: #0b3f46;
+  --gist-card-radius: 12px;
+  --gist-card-radius-sm: 6px;
+}
+
+.gist-card {
+  background: var(--gist-card-bg);
+  border: 1px solid var(--gist-card-border);
+  border-radius: var(--gist-card-radius);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  transition: all 0.2s ease-in-out;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  position: relative;
+  min-height: 280px;
+  max-height: 400px;
+
+  &:hover {
+    box-shadow: var(--gist-card-hover-shadow);
+    border-color: #003B44;
+    transform: translateY(-2px);
+  }
+
+  &--clickable {
+    cursor: pointer;
+    
+    &:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+    }
+  }
+
+  /* Header removed - view button now in actions */
+  // &__header {
+  //   display: flex;
+  //   align-items: center;
+  //   justify-content: space-between;
+  //   padding: 12px 16px;
+  //   background: var(--gist-card-header-bg);
+  //   border-bottom: 1px solid var(--gist-card-border);
+  // }
+
+  &__view-button-container {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    z-index: 10;
+  }
+
+  &--skeleton {
+    .gist-card__view-button-container {
+      .ant-skeleton-button {
+        opacity: 0.3;
+      }
+    }
+  }
+
+  &__code-skeleton {
+    display: flex;
+    gap: 16px;
+    padding: 20px 16px 16px 16px;
+    min-height: 140px;
+  }
+
+  &__code-line-numbers {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    min-width: 30px;
+    opacity: 0.5;
+  }
+
+  &__code-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+  }
+
+  &__file-info {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+  }
+
+  &__filename {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--gist-card-text);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+  }
+
+  &__language {
+    font-size: 11px;
+    color: var(--gist-card-text-muted);
+    background: #e5e7eb;
+    padding: 2px 6px;
+    border-radius: 12px;
+    text-transform: uppercase;
+    font-weight: 500;
+    letter-spacing: 0.5px;
+    white-space: nowrap;
+  }
+
+  &__view-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 12px;
+    font-size: 12px;
+    font-weight: 500;
+    color: #ffffff;
+    background: var(--gist-card-accent);
+    border: none;
+    border-radius: var(--gist-card-radius-sm);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    white-space: nowrap;
+    flex-shrink: 0;
+    opacity: 0;
+    transform: translateY(-5px);
+    pointer-events: none;
+    box-shadow: 0 2px 8px rgba(0, 59, 68, 0.2);
+
+    &:hover:not(:disabled) {
+      background: #0a363c;
+      transform: translateY(-5px) scale(1.02);
+      box-shadow: 0 4px 12px rgba(0, 59, 68, 0.3);
+    }
+
+    &:active:not(:disabled) {
+      transform: translateY(-5px) scale(0.98);
+    }
+
+    &:disabled {
+      background: #9ca3af;
+      cursor: not-allowed;
+      box-shadow: none;
+    }
+
+    .anticon {
+      font-size: 11px;
+      flex-shrink: 0;
+    }
+  }
+
+  &__view-text {
+    transition: all 0.3s ease;
+    max-width: 0;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+
+  // Show view button on card hover
+  &:hover &__view-btn {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: all;
+  }
+
+  &:hover &__view-text {
+    max-width: 200px;
+    margin-left: 4px;
+  }
+
+  &__code {
+    position: relative;
+    background: var(--gist-card-code-bg);
+    min-height: 120px;
+    max-height: 240px;
+    overflow: hidden;
+    border-radius: var(--gist-card-radius) var(--gist-card-radius) 0 0;
+    flex: 1; /* Take available space */
+
+    pre[class*="language-"] {
+      margin: 0 !important;
+      background: transparent !important;
+      border-radius: 0 !important;
+      max-height: 200px !important;
+      overflow: hidden !important;
+      padding: 20px 16px 16px 16px !important; /* Extra top padding for button */
+      
+      code {
+        background: transparent !important;
+        font-size: 13px !important;
+        line-height: 1.5 !important;
+      }
+    }
+  }
+
+  &__code-fade {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 40px;
+    background: linear-gradient(transparent, var(--gist-card-code-bg));
+    pointer-events: none;
+  }
+
+  &__meta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px;
+    gap: 12px;
+    background: var(--gist-card-bg);
+    min-height: 80px; /* Fixed minimum height */
+    flex-shrink: 0; /* Don't shrink */
+  }
+
+  &__author {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+    flex: 1;
+    
+    .ant-avatar {
+      flex-shrink: 0;
+      
+      img {
+        background-color: transparent !important;
+        object-fit: cover;
+      }
+      
+      &.ant-avatar-image {
+        background-color: transparent !important;
+      }
+    }
+  }
+
+  &__author-info {
+    min-width: 0;
+    flex: 1;
+  }
+
+  &__author-name {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--gist-card-text);
+    margin-bottom: 2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  &__username {
+    color: var(--gist-card-accent);
+    
+    &:hover {
+      text-decoration: underline;
+      cursor: pointer;
+    }
+  }
+
+  &__separator {
+    color: var(--gist-card-text-muted);
+    margin: 0 2px;
+  }
+
+  &__gist-name {
+    color: var(--gist-card-text);
+    
+    &:hover {
+      color: var(--gist-card-accent);
+      cursor: pointer;
+    }
+  }
+
+  &__details {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: var(--gist-card-text-muted);
+  }
+
+  &__created {
+    white-space: nowrap;
+  }
+
+  &__dot {
+    opacity: 0.6;
+  }
+
+  &__description {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 200px;
+  }
+
+  &__actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+  }
+
+  &__action-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border: 1px solid var(--gist-card-border);
+    border-radius: var(--gist-card-radius-sm);
+    background: var(--gist-card-bg);
+    color: var(--gist-card-text-muted);
+    cursor: pointer;
+    transition: all 0.2s ease;
+
+    &:hover {
+      color: var(--gist-card-accent);
+      border-color: var(--gist-card-accent);
+      background: #f8fafc;
+      transform: scale(1.05);
+    }
+
+    &:active {
+      transform: scale(0.95);
+    }
+
+    .anticon {
+      font-size: 14px;
+    }
+  }
+}
+
+/* Grid layout for cards */
+.gist-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+  gap: 20px;
+  padding: 20px;
+
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr;
+    gap: 16px;
+    padding: 16px;
+  }
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --gist-card-bg: #1f2937;
+    --gist-card-border: #374151;
+    --gist-card-hover-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    --gist-card-code-bg: #111827;
+    --gist-card-header-bg: #374151;
+    --gist-card-text: #f9fafb;
+    --gist-card-text-muted: #9ca3af;
+    --gist-card-accent: #22d3ee;
+  }
+}
+
+/* Responsive adjustments */
+@media (max-width: 640px) {
+  .gist-card {
+    min-height: 260px;
+    max-height: 380px;
+
+    &__header {
+      padding: 10px 12px;
+    }
+
+    &__meta {
+      padding: 12px;
+      min-height: 70px;
+    }
+
+    &__code {
+      min-height: 100px;
+      max-height: 220px;
+    }
+
+    &__filename {
+      font-size: 12px;
+    }
+
+    &__language {
+      font-size: 10px;
+    }
+
+    &__view-btn {
+      font-size: 11px;
+      padding: 5px 8px;
+    }
+
+    &__author-name {
+      font-size: 13px;
+    }
+
+    &__details {
+      font-size: 11px;
+    }
+
+    &__description {
+      max-width: 120px;
+    }
+  }
+}

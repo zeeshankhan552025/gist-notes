@@ -1,4 +1,5 @@
 import { useState } from "react"
+import { Trash2 } from "lucide-react"
 import GistEditor from "./gist-editor"
 
 export type GistFile = {
@@ -66,7 +67,7 @@ export default function GistFileEditor({ file, onChange, onRemove, disabled = fa
           aria-label="Remove file"
           disabled={disabled}
         >
-          ×
+          <Trash2 size={16} />
         </button>
       </div>
       <div className="gist-file-editor__editor">

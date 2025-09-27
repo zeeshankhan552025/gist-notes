@@ -1,0 +1,108 @@
+/* Editor and Syntax Highlighter Styles */
+
+.gist-editor {
+  border: 1px solid #e6e8eb;
+  border-radius: 6px;
+  overflow: hidden;
+  background: #ffffff;
+  position: relative;
+
+  .monaco-editor {
+    .monaco-editor-background {
+      background-color: #ffffff !important;
+    }
+
+    .margin {
+      background-color: #f8f9fa !important;
+    }
+
+    .line-numbers {
+      color: #9aa1a9 !important;
+    }
+
+    .current-line {
+      background-color: transparent !important;
+    }
+  }
+}
+
+/* React Syntax Highlighter Global Overrides */
+.gist-list__code {
+  overflow: hidden;
+  position: relative;
+  
+  pre[class*="language-"] {
+    margin: 0 !important;
+    padding: 0 !important;
+    font-size: 13px !important;
+    line-height: 1.4 !important;
+    border: none !important;
+    border-radius: 0 !important;
+    overflow: auto;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace !important;
+    max-height: 400px;
+    
+    code[class*="language-"] {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace !important;
+      /* Let the theme handle colors and background */
+      padding: 12px !important;
+      display: block !important;
+    }
+  }
+  
+  /* Fix line number container without overriding colors */
+  .react-syntax-highlighter-line-number {
+    font-size: 12px !important;
+    min-width: 3em !important;
+    padding: 0 0.5em !important;
+    user-select: none !important;
+    display: inline-block !important;
+    text-align: right !important;
+    border-right: 1px solid #e6e8eb !important;
+    margin-right: 0.5em !important;
+    position: sticky !important;
+    left: 0 !important;
+  }
+}
+
+/* Ensure proper scrolling for code blocks */
+.gist-list__item .gist-list__code {
+  overflow: hidden;
+  
+  pre {
+    max-height: 400px;
+    overflow: auto;
+  }
+}
+
+/* Monaco Editor Container Fix */
+.gist-file-editor__editor {
+  .gist-editor {
+    height: 100%;
+    
+    .monaco-editor {
+      height: 100% !important;
+    }
+  }
+}
+
+/* Fix for create gist editor */
+.gist-create .gist-file-editor .gist-editor {
+  min-height: 200px;
+  
+  .monaco-editor {
+    min-height: 200px !important;
+  }
+}
+
+/* Responsive design for editors */
+@media (max-width: 768px) {
+  .gist-list__code pre {
+    font-size: 12px !important;
+    padding: 8px !important;
+  }
+  
+  .gist-editor {
+    border-radius: 4px;
+  }
+}

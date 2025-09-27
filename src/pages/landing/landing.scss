@@ -21,11 +21,14 @@
   }
 
   &__title {
-    font-size: 2.5rem;
-    font-weight: 600;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-size: 25px;
+    font-weight: 400;
+    font-style: normal;
     color: #24292f;
     margin: 0 0 0.5rem 0;
-    line-height: 1.2;
+    line-height: 100%;
+    letter-spacing: -2%;
   }
 
   &__subtitle {
@@ -61,12 +64,12 @@
     }
 
     &--active {
-      background-color: #0969da;
-      color: #fff;
+      background-color: #E3E3E3;
+      color: #24292f;
 
       &:hover {
-        background-color: #0958d9;
-        color: #fff;
+        background-color: #d4d4d4;
+        color: #24292f;
       }
     }
 
@@ -94,34 +97,6 @@
     }
   }
 
-  &__pagination {
-    display: flex;
-    justify-content: center;
-    padding: 2rem 0;
-    border-top: 1px solid #d1d9e0;
-
-    .ant-pagination {
-      .ant-pagination-item {
-        border-radius: 6px;
-      }
-
-      .ant-pagination-item-active {
-        background-color: #0969da;
-        border-color: #0969da;
-
-        a {
-          color: #fff;
-        }
-      }
-
-      .ant-pagination-prev,
-      .ant-pagination-next {
-        .ant-pagination-item-link {
-          border-radius: 6px;
-        }
-      }
-    }
-  }
 }
 
 // Responsive design
@@ -138,7 +113,9 @@
     }
 
     &__title {
-      font-size: 2rem;
+      font-size: 22px;
+      line-height: 100%;
+      letter-spacing: -2%;
     }
 
     &__subtitle {
@@ -155,7 +132,9 @@
 @media (max-width: 480px) {
   .landing {
     &__title {
-      font-size: 1.75rem;
+      font-size: 20px;
+      line-height: 100%;
+      letter-spacing: -2%;
     }
 
     &__header {

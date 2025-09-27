@@ -95,13 +95,39 @@ $neutral-700: #465056; // subdued text
   }
 
   &__user {
-    display: inline-flex;
+    display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 12px;
+    padding: 4px 0;
+    min-height: 40px;
+  }
+
+  &__avatar {
+    flex-shrink: 0;
+    border: 1px solid #e1e5e9;
   }
 
   &__user-name {
-    color: #111;
+    color: #24292f;
+    font-weight: 500;
+    font-size: 14px;
+    line-height: 1.2;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    min-width: 0;
+    flex: 1;
+  }
+
+  &__gist-name {
+    color: #24292f;
+    font-weight: 400;
+    text-decoration: none;
+    
+    &:hover {
+      color: #0969da;
+      text-decoration: underline;
+    }
   }
 
   &__notebook,
@@ -109,7 +135,23 @@ $neutral-700: #465056; // subdued text
     color: $neutral-700;
   }
 
-  // Keyword pill
+  // Keyword badge with round button styling
+  &__keyword-badge {
+    display: inline-block;
+    padding: 6px 16px;
+    font-size: 12px;
+    font-weight: 500;
+    line-height: 1;
+    color: #ffffff;
+    background-color: #003B44;
+    border-radius: 20px;
+    text-transform: lowercase;
+    white-space: nowrap;
+    min-width: 60px;
+    text-align: center;
+  }
+
+  // Original badge styling (keeping for backward compatibility)
   &__badge {
     display: inline-block;
     padding: 2px 10px;

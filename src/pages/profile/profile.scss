@@ -1,3 +1,5 @@
+@use "sass:color";
+
 /* BEM + 5-color palette */
 $brand-teal: #0f4e52;
 $bg: #ffffff;
@@ -29,9 +31,56 @@ $text: #111418;
 
   &__header {
     display: flex;
+    justify-content: space-between;
     align-items: center;
     gap: 8px;
     margin-bottom: 16px;
+  }
+
+  &__header-left {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  &__view-switch {
+    display: flex;
+    border: 1px solid #d1d9e0;
+    border-radius: 6px;
+    overflow: hidden;
+    background: #fff;
+  }
+
+  &__icon-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 32px;
+    border: none;
+    background: transparent;
+    color: #656d76;
+    cursor: pointer;
+    transition: all 0.2s ease;
+
+    &:hover {
+      background-color: #f3f4f6;
+      color: #24292f;
+    }
+
+    &--active {
+      background-color: #E3E3E3;
+      color: #24292f;
+
+      &:hover {
+        background-color: #d4d4d4;
+        color: #24292f;
+      }
+    }
+
+    svg {
+      pointer-events: none;
+    }
   }
 
   &__title {
@@ -158,133 +207,7 @@ $text: #111418;
     transition: background 0.15s ease-in-out;
 
     &:hover {
-      background: darken($brand-teal, 4%);
+      background: color.adjust($brand-teal, $lightness: -4%);
     }
-  }
-}
-
-/* Gist list */
-.gist-list {
-  display: grid;
-  gap: 16px;
-
-  &__item {
-    background: $bg;
-    border: 1px solid $border;
-    border-radius: 10px;
-    overflow: hidden;
-  }
-
-  &__filetab {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    background: $surface;
-    border-bottom: 1px solid $border;
-    padding: 10px 12px;
-  }
-
-  &__filename {
-    font-size: 12px;
-    color: #4a4f57;
-  }
-
-  &__view-chip {
-    background: $brand-teal;
-    color: #fff;
-    font-size: 12px;
-    padding: 4px 8px;
-    border-radius: 6px;
-    cursor: pointer;
-  }
-
-  &__code {
-    display: grid;
-    grid-template-columns: 48px 1fr;
-    gap: 0;
-  }
-
-  &__gutter {
-    background: $bg;
-    border-right: 1px solid $border;
-    padding: 12px 8px;
-    display: grid;
-    align-content: start;
-    gap: 6px;
-  }
-
-  &__line-number {
-    color: #9aa1a9;
-    font-size: 12px;
-    text-align: right;
-  }
-
-  &__pre {
-    margin: 0;
-    padding: 12px 16px;
-    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
-    font-size: 12px;
-    line-height: 1.5;
-    white-space: pre;
-    overflow-x: auto;
-  }
-
-  &__meta {
-    display: flex;
-    align-items: flex-start;
-    padding: 10px 12px 14px;
-    gap: 8px;
-    border-top: 1px solid $border;
-  }
-
-  &__avatar {
-    width: 28px;
-    height: 28px;
-    border-radius: 999px;
-    background: $surface;
-    border: 1px solid $border;
-    display: grid;
-    place-items: center;
-    font-size: 12px;
-    font-weight: 700;
-    color: $brand-teal;
-    margin-right: 8px;
-  }
-
-  &__owner {
-    min-width: 0;
-  }
-
-  &__owner-name {
-    font-weight: 600;
-  }
-
-  &__slash {
-    color: #6b7280;
-  }
-
-  &__gist-name {
-    font-weight: 600;
-    color: #111418;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    display: inline-block;
-    max-width: 60ch;
-    vertical-align: bottom;
-  }
-
-  &__created {
-    font-size: 12px;
-    color: #6b7280;
-  }
-
-  &__desc {
-    font-size: 12px;
-    color: #6b7280;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    max-width: 68ch;
   }
 }

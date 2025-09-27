@@ -1,9 +1,8 @@
 import { Avatar, Button, Table, Skeleton } from "antd"
 import type { ColumnsType } from "antd/es/table"
-import { ForkOutlined, StarOutlined } from "@ant-design/icons"
+import { EyeOutlined, EditOutlined } from "@ant-design/icons"
 import { useNavigate } from "react-router-dom"
 import type { GitHubGist } from "../services/github"
-import "../pages/public-gist/table/public-gist-table-view.scss"
 
 type Row = {
   key: string
@@ -14,14 +13,15 @@ type Row = {
   avatarUrl: string
   language: string
   gistUrl: string
+  isPublic: boolean
 }
 
-interface PublicGistsTableProps {
+interface ProfileGistsTableProps {
   gists: GitHubGist[]
   loading?: boolean
 }
 
-export function PublicGistsTable({ gists, loading = false }: PublicGistsTableProps) {
+export function ProfileGistsTable({ gists, loading = false }: ProfileGistsTableProps) {
   const navigate = useNavigate();
 
   // Handle row click to navigate to detail page
@@ -30,6 +30,7 @@ export function PublicGistsTable({ gists, loading = false }: PublicGistsTablePro
       navigate(`/gist/${record.key}`);
     }
   };
+
   // Helper function to format relative dates
   const formatRelativeDate = (dateString: string): string => {
     const now = new Date();
@@ -55,9 +56,28 @@ export function PublicGistsTable({ gists, loading = false }: PublicGistsTablePro
     }
   };
 
+  // Convert GitHubGist to table row format
+  const rows: Row[] = gists.map((gist) => {
+    const fileName = Object.keys(gist.files)[0] || 'untitled'
+    const file = Object.values(gist.files)[0]
+    const language = file?.language || 'Text'
+    
+    return {
+      key: gist.id,
+      name: gist.owner.login,
+      gistName: fileName,
+      description: gist.description || 'No description',
+      updated: gist.updated_at,
+      avatarUrl: gist.owner.avatar_url,
+      language: language,
+      gistUrl: gist.html_url,
+      isPublic: gist.public,
+    }
+  })
+
   // Generate skeleton rows for loading state
-  const generateSkeletonRows = (count: number = 5): Row[] => {
-    return Array.from({ length: count }, (_, index) => ({
+  const generateSkeletonRows = (): Row[] => {
+    return Array.from({ length: 6 }, (_, index) => ({
       key: `skeleton-${index}`,
       name: '',
       gistName: '',
@@ -65,92 +85,89 @@ export function PublicGistsTable({ gists, loading = false }: PublicGistsTablePro
       updated: '',
       avatarUrl: '',
       language: '',
-      gistUrl: ''
-    }));
-  };
-
-  // Convert GitHub gists to table rows
-  const rows: Row[] = gists.map((gist) => {
-    const firstFile = Object.values(gist.files)[0]
-    return {
-      key: gist.id,
-      name: gist.owner.login,
-      gistName: Object.keys(gist.files)[0] || 'untitled',
-      description: gist.description || 'No description',
-      updated: gist.updated_at, // Keep original ISO string for relative formatting
-      avatarUrl: gist.owner.avatar_url,
-      language: firstFile?.language || 'Text',
-      gistUrl: gist.html_url
-    }
-  })
+      gistUrl: '',
+      isPublic: false,
+    }))
+  }
 
   const columns: ColumnsType<Row> = [
     {
       title: "Name",
-      dataIndex: "name",
       key: "name",
-      render: (_: unknown, r) => (
-        <div className="gists-table__user">
-          {loading && !r.name ? (
+      width: 200,
+      render: (_, record) => (
+        <div className="gists-table__name">
+          {loading && !record.name ? (
             <>
               <Skeleton.Avatar size={32} active />
-              <Skeleton.Input style={{ width: 100, height: 16, marginLeft: 8 }} active />
+              <Skeleton.Input style={{ width: 120, height: 16, marginLeft: 12 }} active />
             </>
           ) : (
             <>
               <Avatar 
                 size={32} 
-                src={r.avatarUrl} 
-                className="gists-table__avatar"
-                style={{ flexShrink: 0 }}
-              />
-              <span className="gists-table__user-name">{r.name}</span>
+                src={record.avatarUrl}
+                alt={`${record.name} avatar`}
+              >
+                {record.name ? record.name.charAt(0).toUpperCase() : 'U'}
+              </Avatar>
+              <span>{record.gistName}</span>
             </>
           )}
         </div>
       ),
     },
     {
-      title: "Notebook Name",
-      dataIndex: "gistName",
-      key: "gistName",
-      render: (text: string) => (
-        loading && !text ? (
-          <Skeleton.Input style={{ width: 150, height: 16 }} active />
+      title: "Description",
+      key: "description",
+      render: (_, record) => (
+        loading && !record.description ? (
+          <Skeleton.Input style={{ width: 300, height: 16 }} active />
         ) : (
-          <span className="gists-table__gist-name">
-            {text}
+          <span className="gists-table__description">
+            {record.description}
           </span>
         )
       ),
     },
     {
-      title: "Keyword",
-      dataIndex: "description",
-      key: "description",
-      render: (text: string) => {
-        if (loading && !text) {
-          return <Skeleton.Button style={{ width: 80, height: 24, borderRadius: 20 }} active />;
-        }
-        // Extract first word as keyword
-        const keyword = text.split(' ')[0] || 'general';
-        return (
-          <span className="gists-table__keyword-badge">
-            {keyword}
+      title: "Language",
+      key: "language",
+      width: 100,
+      render: (_, record) => (
+        loading && !record.language ? (
+          <Skeleton.Input style={{ width: 80, height: 16 }} active />
+        ) : (
+          <span className="gists-table__language">
+            {record.language}
           </span>
-        );
-      },
+        )
+      ),
+    },
+    {
+      title: "Visibility",
+      key: "visibility",
+      width: 100,
+      render: (_, record) => (
+        loading && !record.name ? (
+          <Skeleton.Input style={{ width: 60, height: 16 }} active />
+        ) : (
+          <span className={`gists-table__visibility ${record.isPublic ? 'gists-table__visibility--public' : 'gists-table__visibility--private'}`}>
+            {record.isPublic ? 'Public' : 'Private'}
+          </span>
+        )
+      ),
     },
     {
       title: "Updated",
-      dataIndex: "updated",
       key: "updated",
-      render: (dateString: string) => (
-        loading && !dateString ? (
+      width: 200,
+      render: (_, record) => (
+        loading && !record.updated ? (
           <Skeleton.Input style={{ width: 200, height: 16 }} active />
         ) : (
           <span className="gists-table__updated">
-            {formatRelativeDate(dateString)}
+            {formatRelativeDate(record.updated)}
           </span>
         )
       ),
@@ -170,15 +187,21 @@ export function PublicGistsTable({ gists, loading = false }: PublicGistsTablePro
             <>
               <Button 
                 type="text" 
-                icon={<ForkOutlined />} 
+                icon={<EyeOutlined />} 
                 aria-label="View gist"
-                onClick={() => window.open(record.gistUrl, '_blank')}
+                onClick={(e) => {
+                  e.stopPropagation()
+                  navigate(`/gist/${record.key}`)
+                }}
               />
               <Button 
                 type="text" 
-                icon={<StarOutlined />} 
-                aria-label="Star gist"
-                onClick={() => window.open(record.gistUrl, '_blank')}
+                icon={<EditOutlined />} 
+                aria-label="Edit gist"
+                onClick={(e) => {
+                  e.stopPropagation()
+                  window.open(record.gistUrl, '_blank')
+                }}
               />
             </>
           )}
@@ -188,7 +211,7 @@ export function PublicGistsTable({ gists, loading = false }: PublicGistsTablePro
   ]
 
   return (
-    <div className="gists-table" role="region" aria-label="Public gists table">
+    <div className="gists-table" role="region" aria-label="Profile gists table">
       <div className="gists-table__antd">
         <Table<Row> 
           columns={columns} 

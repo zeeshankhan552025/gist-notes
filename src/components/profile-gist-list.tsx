@@ -1,5 +1,9 @@
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter'
-import { oneLight } from 'react-syntax-highlighter/dist/esm/styles/prism'
+import { tomorrow } from 'react-syntax-highlighter/dist/esm/styles/prism'
+import { EyeOutlined } from '@ant-design/icons'
+import { Avatar, Tooltip } from 'antd'
+import { useNavigate } from 'react-router-dom'
+import './profile-gist-card.scss'
 
 type GistItem = {
   id: string
@@ -14,6 +18,7 @@ type GistItem = {
 }
 
 export function ProfileGistList({ items }: { items: GistItem[] }) {
+  const navigate = useNavigate();
   const getInitials = (name: string) => {
     return name
       .split(' ')
@@ -55,74 +60,117 @@ export function ProfileGistList({ items }: { items: GistItem[] }) {
   }
 
   return (
-    <div className="gist-list">
-      {items.map((g) => (
-        <article key={g.id} className="gist-list__item" aria-label={`Gist ${g.gistName}`}>
-          <div className="gist-list__filetab">
-            <span className="gist-list__filename">{g.fileName}</span>
-            <span className="gist-list__view-chip" role="button" tabIndex={0}>
-              View {g.fileName}
-            </span>
-          </div>
+    <div className="profile-gist-grid">
+      {items.map((g) => {
+        const handleCardClick = () => {
+          navigate(`/gist/${g.id}`);
+        };
 
-          <div className="gist-list__code">
-            <SyntaxHighlighter
-              language={g.language || getLanguageFromFilename(g.fileName)}
-              style={oneLight}
-              showLineNumbers={true}
-              customStyle={{
-                margin: 0,
-                padding: '12px',
-                fontSize: '13px',
-                lineHeight: '1.4',
-                backgroundColor: '#fafafa',
-                border: 'none'
-              }}
-              lineNumberStyle={{
-                minWidth: '2.5em',
-                paddingRight: '1em',
-                color: '#999',
-                fontSize: '12px'
-              }}
-            >
-              {g.lines.join('\n')}
-            </SyntaxHighlighter>
-          </div>
+        const handleViewClick = (e: React.MouseEvent) => {
+          e.stopPropagation();
+          // Open gist on GitHub
+          window.open(`https://gist.github.com/${g.id}`, '_blank', 'noopener,noreferrer');
+        };
 
-          <div className="gist-list__meta">
-            <div className="gist-list__meta-left">
-              <div className="gist-list__avatar" aria-hidden="true">
-                {g.ownerAvatar ? (
-                  <img 
-                    src={g.ownerAvatar} 
-                    alt={`${g.owner}'s avatar`}
-                    style={{ 
-                      width: '100%', 
-                      height: '100%', 
-                      borderRadius: '50%',
-                      objectFit: 'cover'
-                    }}
-                  />
-                ) : (
-                  getInitials(g.owner || 'User')
-                )}
-              </div>
-              <div className="gist-list__owner">
-                <span className="gist-list__owner-name">{g.owner}</span>
-                <span className="gist-list__slash">{" / "}</span>
-                <span className="gist-list__gist-name" title={g.gistName}>
-                  {g.gistName}
-                </span>
-                <div className="gist-list__created">{g.createdAt}</div>
-                <div className="gist-list__desc" title={g.description}>
-                  {g.description}
+        const truncateFilename = (filename: string, maxLength: number = 20): string => {
+          if (filename.length <= maxLength) {
+            return filename
+          }
+          return filename.substring(0, maxLength - 3) + '...';
+        };
+
+        const truncatedFilename = truncateFilename(g.fileName);
+        const viewText = `View ${truncatedFilename}`;
+
+        return (
+          <article 
+            key={g.id} 
+            className="profile-gist-card profile-gist-card--clickable"
+            onClick={handleCardClick}
+            style={{ cursor: 'pointer' }}
+            aria-label={`${g.owner} / ${g.gistName}`}
+          >
+            {/* Top-right view button */}
+            <div className="profile-gist-card__view-button-container">
+              <Tooltip title={`View ${g.fileName}`}>
+                <button 
+                  className="profile-gist-card__view-btn" 
+                  aria-label={viewText}
+                  onClick={handleViewClick}
+                >
+                  <EyeOutlined />
+                  <span className="profile-gist-card__view-text">{viewText}</span>
+                </button>
+              </Tooltip>
+            </div>
+
+            <div className="profile-gist-card__code">
+              <SyntaxHighlighter
+                language={g.language || getLanguageFromFilename(g.fileName)}
+                style={tomorrow}
+                showLineNumbers={true}
+                customStyle={{
+                  margin: 0,
+                  padding: '16px',
+                  fontSize: '13px',
+                  lineHeight: '1.4',
+                  backgroundColor: 'transparent',
+                  border: 'none',
+                  borderRadius: '0',
+                  maxHeight: '200px',
+                  overflow: 'hidden'
+                }}
+                lineNumberStyle={{
+                  minWidth: '2.5em',
+                  paddingRight: '1em',
+                  color: '#6b7280',
+                  fontSize: '12px',
+                  userSelect: 'none'
+                }}
+              >
+                {g.lines.join('\n')}
+              </SyntaxHighlighter>
+              <div className="profile-gist-card__code-fade"></div>
+            </div>
+
+            <div className="profile-gist-card__meta">
+              <div className="profile-gist-card__author">
+                <Avatar
+                  size={32}
+                  src={g.ownerAvatar}
+                  style={{ 
+                    flexShrink: 0,
+                    backgroundColor: g.ownerAvatar ? 'transparent' : "#0b3f46",
+                    color: "#ffffff", 
+                    fontWeight: "600" 
+                  }}
+                  aria-label={`${g.owner} avatar`}
+                >
+                  {getInitials(g.owner || 'User')}
+                </Avatar>
+                <div className="profile-gist-card__author-info">
+                  <div className="profile-gist-card__author-name" title={`${g.owner} / ${g.gistName}`}>
+                    <span className="profile-gist-card__username">{g.owner}</span>
+                    <span className="profile-gist-card__separator"> / </span>
+                    <span className="profile-gist-card__gist-name">{g.gistName}</span>
+                  </div>
+                  <div className="profile-gist-card__details">
+                    <span className="profile-gist-card__created">{g.createdAt}</span>
+                    {g.description && (
+                      <>
+                        <span className="profile-gist-card__dot" aria-hidden="true">•</span>
+                        <span className="profile-gist-card__description" title={g.description}>
+                          {g.description}
+                        </span>
+                      </>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>
-            {/* Right side actions can be added later */}
-          </div>
-        </article>
-      ))}
+          </article>
+        );
+      })}
     </div>
-  )
+  );
 }

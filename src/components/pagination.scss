@@ -1,0 +1,159 @@
+/* Generic Pagination Component Styles */
+.pagination {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 4px;
+  padding: 1.5rem 0;
+  margin-top: 2rem;
+
+  &__input {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-size: 14px;
+    color: #24292f;
+    font-weight: 500;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    transition: all 0.2s ease;
+    
+    &:hover {
+      border-color: #d1d5da;
+    }
+    
+    span {
+      white-space: nowrap;
+      font-size: 13px;
+      color: #586069;
+      font-weight: 500;
+    }
+  }
+
+  &__arrow {
+    font-size: 14px;
+    color: #586069;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    border-radius: 4px;
+    
+    &:hover:not(&--disabled) {
+      color: #0366d6;
+      background-color: rgba(3, 102, 214, 0.08);
+      transform: scale(1.05);
+    }
+    
+    &--disabled {
+      color: #d1d5da;
+      cursor: not-allowed;
+      opacity: 0.5;
+    }
+  }
+
+  &__page-input {
+    width: 42px !important;
+    height: 28px !important;
+    text-align: center;
+    
+    .ant-input {
+      padding: 0 6px;
+      border: 1px solid #e1e4e8;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 600;
+      text-align: center;
+      background: #fafbfc;
+      color: #24292f;
+      transition: all 0.15s ease;
+      
+      &:hover:not(:disabled) {
+        border-color: #0366d6;
+        background: #ffffff;
+      }
+      
+      &:focus {
+        border-color: #0366d6;
+        box-shadow: 0 0 0 3px rgba(3, 102, 214, 0.12);
+        background: #ffffff;
+      }
+
+      &:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+      }
+    }
+  }
+
+  &__controls {
+    display: flex;
+    align-items: center;
+    margin-left: 8px;
+  }
+}
+
+// Responsive design
+@media (max-width: 768px) {
+  .pagination {
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 16px;
+    padding: 1.25rem 0;
+    
+    &__input {
+      font-size: 13px;
+      gap: 10px;
+      padding: 6px 12px;
+      
+      span {
+        font-size: 12px;
+      }
+    }
+    
+    &__page-input {
+      width: 38px !important;
+      height: 26px !important;
+      
+      .ant-input {
+        font-size: 12px;
+        padding: 0 4px;
+      }
+    }
+    
+    &__arrow {
+      font-size: 13px;
+      width: 22px;
+      height: 22px;
+    }
+  }
+}
+
+@media (max-width: 480px) {
+  .pagination {
+    padding: 1rem 0;
+    margin-top: 1.5rem;
+  }
+}
+
+/* Custom modifier classes */
+.pagination--center {
+  justify-content: center;
+}
+
+.pagination--left {
+  justify-content: flex-start;
+}
+
+.pagination--simple {
+  .pagination__input {
+    background: transparent;
+    border: none;
+    box-shadow: none;
+    padding: 4px 8px;
+  }
+}

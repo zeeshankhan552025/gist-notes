@@ -38,7 +38,7 @@ export interface GitHubGistResponse {
 
 class GitHubService {
   private baseURL = 'https://api.github.com'
-  private perPage = 30
+  private perPage = 10
 
   async fetchPublicGists(page: number = 1): Promise<GitHubGistResponse> {
     try {
@@ -261,6 +261,67 @@ class GitHubService {
   /**
    * Get authenticated user's profile information
    */
+  async searchGists(query: string): Promise<GitHubGist[]> {
+    try {
+      // GitHub's code search API requires authentication
+      const headers = firebaseAuthService.getGitHubApiHeaders()
+      const useAuth = headers.Authorization !== ''
+      
+      if (!useAuth) {
+        throw new Error('Authentication required for gist search. Please log in with GitHub.')
+      }
+      
+      // Use GitHub's search API to search for gists
+      const searchQuery = encodeURIComponent(`${query} in:file gist:yes`)
+      const response = await fetch(`${this.baseURL}/search/code?q=${searchQuery}`, {
+        headers
+      })
+      
+      if (!response.ok) {
+        if (response.status === 401) {
+          throw new Error('Authentication required. Please log in with GitHub.')
+        }
+        if (response.status === 403) {
+          throw new Error('Rate limit exceeded. Please try again later.')
+        }
+        const errorData = await response.json().catch(() => ({}))
+        throw new Error(`GitHub API error: ${response.status} - ${errorData.message || 'Unknown error'}`)
+      }
+
+      const searchResult = await response.json()
+      console.log('Search result:', searchResult)
+
+      if (!searchResult.items || searchResult.items.length === 0) {
+        return []
+      }
+
+      // Get unique gist IDs from search results
+      const gistIds = new Set<string>()
+      searchResult.items.forEach((item: any) => {
+        if (item.repository && item.repository.name && item.repository.name.match(/^gist:/)) {
+          const gistId = item.repository.name.replace('gist:', '')
+          gistIds.add(gistId)
+        }
+      })
+
+      // Fetch full gist data for each found gist ID
+      const gistPromises = Array.from(gistIds).slice(0, 10).map(async (gistId) => {
+        try {
+          return await this.searchGistById(gistId)
+        } catch (error) {
+          console.error(`Error fetching gist ${gistId}:`, error)
+          return null
+        }
+      })
+
+      const gists = await Promise.all(gistPromises)
+      return gists.filter((gist): gist is GitHubGist => gist !== null)
+    } catch (error) {
+      console.error('Error searching gists:', error)
+      throw error
+    }
+  }
+
   async getAuthenticatedUser(): Promise<any> {
     try {
       const headers = firebaseAuthService.getGitHubApiHeaders()

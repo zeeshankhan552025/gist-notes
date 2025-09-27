@@ -22,13 +22,39 @@ export default function GistEditor({
 }: GistEditorProps) {
   return (
     <div className={`gist-editor ${className || ""}`}>
-      <Suspense fallback={<div>Loading editor...</div>}>
+      <Suspense fallback={
+        <div style={{ 
+          height: typeof height === 'number' ? `${height}px` : height,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          background: '#fafafa',
+          border: '1px solid #e6e8eb',
+          borderRadius: '6px',
+          color: '#666'
+        }}>
+          Loading editor...
+        </div>
+      }>
         <MonacoEditor
           height={height}
           defaultLanguage={language}
+          language={language}
           value={value}
           onChange={onChange}
-          theme="vs-light"
+          theme="vs"
+          loading={
+            <div style={{ 
+              height: typeof height === 'number' ? `${height}px` : height,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              background: '#fafafa',
+              color: '#666'
+            }}>
+              Loading...
+            </div>
+          }
           options={{
             readOnly,
             minimap: { enabled: false },
@@ -36,9 +62,22 @@ export default function GistEditor({
             scrollBeyondLastLine: false,
             automaticLayout: true,
             roundedSelection: false,
-            renderLineHighlight: "none",
+            renderLineHighlight: readOnly ? "none" : "line",
             fontSize: 13,
+            lineHeight: 18,
             padding: { top: 12, bottom: 16 },
+            wordWrap: "on",
+            wrappingIndent: "indent",
+            scrollbar: {
+              verticalScrollbarSize: 8,
+              horizontalScrollbarSize: 8,
+              alwaysConsumeMouseWheel: false
+            },
+            overviewRulerLanes: 0,
+            hideCursorInOverviewRuler: true,
+            overviewRulerBorder: false,
+            colorDecorators: true,
+            bracketPairColorization: { enabled: true }
           }}
         />
       </Suspense>

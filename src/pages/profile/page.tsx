@@ -1,12 +1,17 @@
 
 import { useState, useEffect } from "react"
 import { Spin, message } from "antd"
+import { Header } from "../../layout/header"
 import { useAuth } from "../../contexts/AuthContext"
 import { ProfileGistList } from "../../components/profile-gist-list"
+import { ProfileGistsTable } from "../../components/profile-gists-table"
 import { ProfileSidebar } from "../../components/profile-sidebar"
+import { Pagination } from "../../components/pagination"
 import { githubService } from "../../services/github"
 import type { GitHubGist } from "../../services/github"
 import "./profile.scss"
+
+type ViewMode = 'list' | 'card'
 
 export default function ProfilePage() {
   const { userInfo, isAuthenticated, githubToken } = useAuth()
@@ -15,27 +20,96 @@ export default function ProfilePage() {
   const [loadingContent, setLoadingContent] = useState(false)
   const [githubUserData, setGithubUserData] = useState<any>(null)
   const [gistContents, setGistContents] = useState<Record<string, string>>({})
+  const [viewMode, setViewMode] = useState<ViewMode>('card')
+  const [searchResult, setSearchResult] = useState<GitHubGist | null>(null)
+  const [searchResults, setSearchResults] = useState<GitHubGist[]>([])
   
-  // Fetch individual gist content
-  const fetchGistContent = async (gistId: string) => {
-    if (gistContents[gistId]) return gistContents[gistId]
-    
-    try {
-      const gist = await githubService.searchGistById(gistId)
-      if (gist && gist.files) {
-        const firstFile = Object.values(gist.files)[0]
-        const content = firstFile?.content || 'No content available'
-        setGistContents(prev => ({ ...prev, [gistId]: content }))
-        return content
-      }
-    } catch (error) {
-      console.error('Error fetching gist content:', error)
-      return 'Error loading content'
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1)
+  const [hasNext, setHasNext] = useState(false)
+  const [hasPrev, setHasPrev] = useState(false)
+  const [totalPages, setTotalPages] = useState(1)
+  
+  // Fetch user's gists with pagination
+  const fetchGists = async (page: number = 1) => {
+    if (!isAuthenticated || !githubToken) {
+      return
     }
-    return 'No content available'
+
+    try {
+      setLoadingContent(true)
+      const gistResponse = await githubService.fetchAuthenticatedUserGists(page)
+      console.log('GitHub Gists Response:', gistResponse)
+      console.log('Number of gists:', gistResponse.gists.length)
+      
+      setGists(gistResponse.gists)
+      setCurrentPage(gistResponse.currentPage)
+      setHasNext(gistResponse.hasNext)
+      setHasPrev(gistResponse.hasPrev)
+      setTotalPages(gistResponse.hasNext ? page + 1 : page)
+      
+      // Fetch content for each gist
+      if (gistResponse.gists.length > 0) {
+        console.log('Fetching individual gist content...')
+        
+        const contentPromises = gistResponse.gists.slice(0, 5).map(async (gist) => {
+          try {
+            const fullGist = await githubService.searchGistById(gist.id)
+            if (fullGist && fullGist.files) {
+              const firstFile = Object.values(fullGist.files)[0]
+              return {
+                gistId: gist.id,
+                content: firstFile?.content || 'No content available'
+              }
+            }
+          } catch (error) {
+            console.error(`Error fetching content for gist ${gist.id}:`, error)
+            return {
+              gistId: gist.id,
+              content: 'Error loading content'
+            }
+          }
+          return { gistId: gist.id, content: 'No content available' }
+        })
+        
+        const contents = await Promise.all(contentPromises)
+        const contentMap: Record<string, string> = {}
+        contents.forEach(({ gistId, content }) => {
+          contentMap[gistId] = content
+        })
+        setGistContents(contentMap)
+        console.log('Loaded gist contents:', contentMap)
+      }
+      
+    } catch (error) {
+      console.error('Error fetching gists:', error)
+      message.error('Failed to load gists: ' + (error as Error).message)
+    } finally {
+      setLoadingContent(false)
+    }
+  }
+
+  // Handle page change
+  const handlePageChange = (page: number) => {
+    fetchGists(page)
   }
   
-  // Fetch user's GitHub data and gists when component mounts
+  const handleSearchResult = (result: any) => {
+    if (result.multiple && result.results) {
+      // Multiple results from content search
+      setSearchResults(result.results)
+      setSearchResult(null)
+    } else {
+      // Single result from ID search
+      setSearchResult(result)
+      setSearchResults([])
+    }
+  }
+
+  const clearSearch = () => {
+    setSearchResult(null)
+    setSearchResults([])
+  }
   useEffect(() => {
     const fetchUserData = async () => {
       if (!isAuthenticated || !githubToken) {
@@ -52,46 +126,8 @@ export default function ProfilePage() {
         console.log('GitHub User Data:', userData)
         setGithubUserData(userData)
 
-        // Fetch user's gists
-        const gistResponse = await githubService.fetchAuthenticatedUserGists(1)
-        console.log('GitHub Gists Response:', gistResponse)
-        console.log('Number of gists:', gistResponse.gists.length)
-        setGists(gistResponse.gists)
-        
-        // Fetch content for each gist
-        if (gistResponse.gists.length > 0) {
-          console.log('Fetching individual gist content...')
-          setLoadingContent(true)
-          
-          const contentPromises = gistResponse.gists.slice(0, 5).map(async (gist) => {
-            try {
-              const fullGist = await githubService.searchGistById(gist.id)
-              if (fullGist && fullGist.files) {
-                const firstFile = Object.values(fullGist.files)[0]
-                return {
-                  gistId: gist.id,
-                  content: firstFile?.content || 'No content available'
-                }
-              }
-            } catch (error) {
-              console.error(`Error fetching content for gist ${gist.id}:`, error)
-              return {
-                gistId: gist.id,
-                content: 'Error loading content'
-              }
-            }
-            return { gistId: gist.id, content: 'No content available' }
-          })
-          
-          const contents = await Promise.all(contentPromises)
-          const contentMap: Record<string, string> = {}
-          contents.forEach(({ gistId, content }) => {
-            contentMap[gistId] = content
-          })
-          setGistContents(contentMap)
-          setLoadingContent(false)
-          console.log('Loaded gist contents:', contentMap)
-        }
+        // Fetch initial page of gists
+        await fetchGists(1)
         
       } catch (error) {
         console.error('Error fetching user data:', error)
@@ -185,7 +221,9 @@ export default function ProfilePage() {
   }
 
   return (
-    <main className="profile-page" role="main" aria-label="Profile page">
+    <>
+      <Header onSearchResult={handleSearchResult} />
+      <main className="profile-page" role="main" aria-label="Profile page">
       <div className="profile-page__container">
         <aside className="profile-page__sidebar" aria-label="User profile">
           <ProfileSidebar 
@@ -202,20 +240,59 @@ export default function ProfilePage() {
 
         <section className="profile-page__content" aria-label="All gists">
           <header className="profile-page__header">
-            <h1 className="profile-page__title">All Gists</h1>
-            <span className="profile-page__count" aria-label="Gists count">
-              {gists.length}
-            </span>
+            <div className="profile-page__header-left">
+              <h1 className="profile-page__title">All Gists</h1>
+              <span className="profile-page__count" aria-label="Gists count">
+                {gists.length}
+              </span>
+            </div>
+            <div className="profile-page__view-switch" aria-label="View options">
+              <button 
+                className={`profile-page__icon-button ${viewMode === 'card' ? 'profile-page__icon-button--active' : ''}`}
+                onClick={() => setViewMode('card')}
+                aria-label="Card view"
+                title="Card view"
+              >
+                <img src="/public/card.svg" alt="" />
+              </button>
+
+              <button 
+                className={`profile-page__icon-button ${viewMode === 'list' ? 'profile-page__icon-button--active' : ''}`}
+                onClick={() => setViewMode('list')}
+                aria-label="Table view"
+                title="Table view"
+              >
+                <img src="/public/list.svg" alt="" />
+              </button>
+            </div>
           </header>
 
-          {gists.length > 0 ? (
+          {searchResult || searchResults.length > 0 ? (
+            <>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                <div style={{ fontWeight: 600 }}>
+                  {searchResult ? 'Search result' : `Found ${searchResults.length} gists`}
+                </div>
+                <button className="btn" onClick={clearSearch}>Clear</button>
+              </div>
+              {viewMode === 'card' ? (
+                <ProfileGistList items={transformGistsForDisplay(searchResult ? [searchResult] : searchResults)} />
+              ) : (
+                <ProfileGistsTable gists={searchResult ? [searchResult] : searchResults} loading={false} />
+              )}
+            </>
+          ) : gists.length > 0 ? (
             <>
               {loadingContent && (
                 <div style={{ textAlign: 'center', padding: '1rem', color: '#666', fontStyle: 'italic' }}>
                   Loading gist content...
                 </div>
               )}
-              <ProfileGistList items={transformGistsForDisplay(gists)} />
+              {viewMode === 'card' ? (
+                <ProfileGistList items={transformGistsForDisplay(gists)} />
+              ) : (
+                <ProfileGistsTable gists={gists} loading={loadingContent} />
+              )}
             </>
           ) : (
             <div style={{ textAlign: 'center', padding: '2rem', color: '#666' }}>
@@ -223,22 +300,19 @@ export default function ProfilePage() {
             </div>
           )}
 
-          {gists.length > 0 && (
-            <footer className="profile-page__pagination" aria-label="Pagination">
-              <button className="profile-page__pager-btn" aria-label="Previous page">
-                {"<"}
-              </button>
-              <span className="profile-page__pager-page" aria-live="polite">
-                1
-              </span>
-              <span className="profile-page__pager-of">of 1</span>
-              <button className="profile-page__pager-btn" aria-label="Next page">
-                {">"}
-              </button>
-            </footer>
+          {!searchResult && searchResults.length === 0 && (
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              hasNext={hasNext}
+              hasPrev={hasPrev}
+              onPageChange={handlePageChange}
+              loading={loadingContent}
+            />
           )}
         </section>
       </div>
     </main>
+    </>
   )
 }

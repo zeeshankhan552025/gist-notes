@@ -1,3 +1,6 @@
+/* Import the gist card styles */
+@use '../../../components/gist-card.scss';
+
 /* BEM + 5-color palette aligned to reference */
 $brand-teal: #0b3f46;
 $surface: #ffffff;
@@ -9,215 +12,193 @@ $text-ink: #2e3d42;
   padding: 24px 32px 32px;
   background: $neutral-50;
   color: $text-ink;
-  
+  min-height: 100vh;
 
   &__header {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    margin-bottom: 16px;
+    margin-bottom: 24px;
+    padding: 0 4px;
   }
 
   &__title {
     margin: 0;
-    font-size: 22px;
-    font-weight: 600;
-    letter-spacing: 0.2px;
+    font-size: 28px;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+    color: $text-ink;
   }
 
   &__toolbar {
     display: flex;
     align-items: center;
-    gap: 12px;
-    width: auto; // no fixed width when search removed
+    gap: 16px;
+    width: auto;
   }
 
   &__search {
     flex: 1;
+    min-width: 240px;
   }
 
   &__view-toggle {
     display: flex;
-    gap: 8px;
+    gap: 4px;
+    background: white;
+    padding: 4px;
+    border-radius: 8px;
+    border: 1px solid $neutral-200;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
   }
 
   &__toggle-btn {
-    border-color: $neutral-200;
+    padding: 8px 12px;
+    border: none;
+    background: transparent;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 500;
+    color: $text-ink;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 6px;
 
-    &--active,
-    &:hover {
+    &--active {
+      background: $brand-teal;
+      color: white;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+    }
+
+    &:hover:not(&--active) {
+      background: $neutral-50;
       color: $brand-teal;
-      border-color: $brand-teal;
+    }
+
+    .anticon {
+      font-size: 12px;
     }
   }
 
   &__grid {
     display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 16px;
+    grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+    gap: 24px;
     margin-top: 8px;
 
-    @media (max-width: 1080px) {
-      grid-template-columns: repeat(2, minmax(0, 1fr));
+    @media (max-width: 1200px) {
+      grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+      gap: 20px;
     }
-    @media (max-width: 680px) {
+
+    @media (max-width: 768px) {
       grid-template-columns: 1fr;
+      gap: 16px;
     }
-  }
 
-  &__card {
-    background: $surface;
-    border: 1px solid $neutral-200;
-    border-radius: 6px;
-    overflow: hidden;
-    display: flex;
-    flex-direction: column;
-
-    &:hover {
-      box-shadow: 0 1px 0 rgba(0,0,0,0.02), 0 2px 8px rgba(0,0,0,0.04);
-    }
-  }
-
-  &__code {
-    position: relative; // for chip
-    display: grid;
-    grid-template-columns: 28px 1fr;
-    gap: 0;
-    border-bottom: 1px solid $neutral-200;
-    background: $surface;
-    padding: 0; // we'll pad children
-  }
-
-  &__gutter {
-    margin: 0;
-    padding: 12px 8px 12px 8px;
-    list-style: none;
-    border-right: 1px solid $neutral-200;
-    color: rgba($text-ink, 0.55);
-    li {
-      line-height: 1.45;
-      font: 12px/1.45 ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
-    }
-  }
-
-  &__code-pre {
-    margin: 0;
-    padding: 12px 12px 12px 12px;
-    font: 12px/1.45 ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
-    color: $text-ink;
-    max-height: 160px;
-    overflow: hidden;
-    white-space: pre;
-  }
-
-  &__view-chip {
-    position: absolute;
-    top: 8px;
-    right: 8px;
-    padding: 4px 8px;
-    font-size: 11px;
-    line-height: 1;
-    border-radius: 4px;
-    border: 1px solid transparent;
-    background: $brand-teal;
-    color: #fff;
-    cursor: pointer;
-    &:hover {
-      filter: brightness(1.05);
-    }
-  }
-
-  &__meta {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 10px 12px;
-    gap: 8px;
-  }
-
-  &__author {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    min-width: 0;
-
-    .ant-avatar {
-      font-weight: 700; // make initials legible
-      line-height: 28px;
-    }
-  }
-
-  &__author-text {
-    min-width: 0;
-  }
-
-  &__name {
-    font-size: 14px;
-    font-weight: 600;
-    color: $text-ink;
-    min-width: 0;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-
-  &__name-author {
-    color: $text-ink;
-  }
-  &__name-sep {
-    opacity: 0.5;
-  }
-  &__name-gist {
-    color: $text-ink;
-  }
-
-  &__subtext {
-    display: flex;
-    gap: 8px;
-    font-size: 12px;
-    color: rgba($text-ink, 0.75);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-
-  &__desc {
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-
-  &__dot {
-    opacity: 0.5;
-  }
-
-  &__actions {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-  }
-
-  &__action-btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 28px;
-    height: 28px;
-    border: 1px solid $neutral-200;
-    border-radius: 4px;
-    background: $surface;
-    color: $text-ink;
-    cursor: pointer;
-    transition: all 120ms ease-in-out;
-
-    &:hover {
-      color: $brand-teal;
-      border-color: $brand-teal;
+    @media (max-width: 480px) {
+      gap: 12px;
     }
   }
 
   &__footer {
     display: flex;
     justify-content: center;
-    margin-top: 16px;
+    margin-top: 32px;
+    padding: 24px 0;
+  }
+
+  &__pagination {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: white;
+    padding: 12px 20px;
+    border-radius: 12px;
+    border: 1px solid $neutral-200;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  }
+
+  &__page-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border: 1px solid $neutral-200;
+    border-radius: 8px;
+    background: white;
+    color: $text-ink;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+
+    &:hover:not(:disabled) {
+      background: $brand-teal;
+      color: white;
+      border-color: $brand-teal;
+    }
+
+    &:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+  }
+
+  &__page-info {
+    font-size: 14px;
+    color: $text-ink;
+    font-weight: 500;
+    margin: 0 8px;
+  }
+}
+
+/* Loading state */
+.gists-cards--loading {
+  .gist-card {
+    background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+    background-size: 200% 100%;
+    animation: loading 1.5s infinite;
+
+    * {
+      visibility: hidden;
+    }
+  }
+}
+
+@keyframes loading {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+/* Empty state */
+.gists-cards__empty {
+  text-align: center;
+  padding: 80px 20px;
+  color: $text-ink;
+
+  &-icon {
+    font-size: 48px;
+    color: $neutral-200;
+    margin-bottom: 16px;
+  }
+
+  &-title {
+    font-size: 20px;
+    font-weight: 600;
+    margin-bottom: 8px;
+  }
+
+  &-description {
+    font-size: 14px;
+    color: rgba($text-ink, 0.7);
+    max-width: 400px;
+    margin: 0 auto;
   }
 }

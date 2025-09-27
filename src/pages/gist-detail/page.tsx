@@ -1,79 +1,190 @@
 import { GitFork, Star } from "lucide-react"
-import { useParams } from "react-router-dom"
+import { useParams, useNavigate } from "react-router-dom"
+import { useState, useEffect } from "react"
+import { Skeleton, message } from "antd"
+import { Header } from "../../layout/header"
+import { githubService, type GitHubGist } from "../../services/github"
 import "./gist-detail.scss"
 import GistEditor from "../../components/gist-editor"
 
-function getInitials(name: string) {
-  const parts = name.trim().split(/\s+/)
-  const a = parts[0]?.[0] || ""
-  const b = parts[1]?.[0] || ""
-  return (a + b).toUpperCase()
-}
-
 export default function GistDetailPage() {
   const { gistId } = useParams<{ gistId: string }>()
-  
-  // Mock data – replace with real data when backend is ready
-  const userName = "John Doe"
-  const gistName = "gist_name"
-  const created = "Created 7 hours ago"
-  const description = "Gist Description"
-  const fileName = "vercel_package.json"
-  const forkCount = 18
-  const starCount = 528
+  const navigate = useNavigate()
+  const [gist, setGist] = useState<GitHubGist | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
-  const code = `{
-  "name": "vercel-monorepo",
-  "version": "0.0.1",
-  "private": true,
-  "license": "Apache-2.0",
-  "packageManager": "pnpm@8.31",
-  "dependencies": {
-    "next": "15.0.0"
-  },
-  "devDependencies": {
-    "typescript": "5.6.2",
-    "eslint": "^9.11.1"
+  useEffect(() => {
+    const fetchGist = async () => {
+      if (!gistId) {
+        setError('Gist ID not found')
+        setLoading(false)
+        return
+      }
+
+      try {
+        setLoading(true)
+        setError(null)
+        const gistData = await githubService.searchGistById(gistId)
+        
+        if (!gistData) {
+          setError('Gist not found')
+        } else {
+          setGist(gistData)
+        }
+      } catch (err) {
+        console.error('Error fetching gist:', err)
+        setError('Failed to load gist')
+        message.error('Failed to load gist details')
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchGist()
+  }, [gistId])
+
+  // Helper function to get initials
+  const getInitials = (name: string) => {
+    const parts = name.trim().split(/\s+/)
+    const a = parts[0]?.[0] || ""
+    const b = parts[1]?.[0] || ""
+    return (a + b).toUpperCase()
   }
-}
-`
+
+  // Helper function to format date
+  const formatDate = (dateString: string): string => {
+    const now = new Date()
+    const date = new Date(dateString)
+    const diffInMs = now.getTime() - date.getTime()
+    const hours = Math.floor(diffInMs / (1000 * 60 * 60))
+    const days = Math.floor(diffInMs / (1000 * 60 * 60 * 24))
+    
+    if (hours < 24) {
+      return hours <= 1 ? 'Created an hour ago' : `Created ${hours} hours ago`
+    } else {
+      return days === 1 ? 'Created a day ago' : `Created ${days} days ago`
+    }
+  }
+
+  // Loading state
+  if (loading) {
+    return (
+      <main className="gist-detail" aria-labelledby="gist-heading">
+        <header className="gist-detail__header">
+          <div className="gist-detail__author">
+            <Skeleton.Avatar size={48} className="gist-detail__avatar" />
+            <div>
+              <Skeleton.Input style={{ width: 300, height: 32, marginBottom: 8 }} active />
+              <Skeleton.Input style={{ width: 200, height: 16, marginBottom: 8 }} active />
+              <Skeleton.Input style={{ width: 400, height: 16 }} active />
+            </div>
+          </div>
+          <div className="gist-detail__actions">
+            <Skeleton.Button style={{ width: 80, height: 36, marginRight: 8 }} active />
+            <Skeleton.Button style={{ width: 80, height: 36 }} active />
+          </div>
+        </header>
+        <section className="gist-detail__file">
+          <Skeleton.Input style={{ width: 200, height: 40, marginBottom: 16 }} active />
+          <div className="gist-detail__editor">
+            <Skeleton.Input style={{ width: '100%', height: 400 }} active />
+          </div>
+        </section>
+      </main>
+    )
+  }
+
+  // Error state
+  if (error || !gist) {
+    return (
+      <main className="gist-detail" aria-labelledby="error-heading">
+        <div style={{ textAlign: 'center', padding: '4rem 2rem' }}>
+          <h1 id="error-heading" style={{ fontSize: '2rem', marginBottom: '1rem', color: '#ef4444' }}>
+            {error || 'Gist not found'}
+          </h1>
+          <p style={{ fontSize: '1.1rem', color: '#6b7280', marginBottom: '2rem' }}>
+            The gist you're looking for doesn't exist or couldn't be loaded.
+          </p>
+          <button 
+            onClick={() => navigate('/')}
+            style={{ 
+              padding: '0.75rem 1.5rem', 
+              fontSize: '1rem', 
+              backgroundColor: '#0366d6', 
+              color: 'white', 
+              border: 'none', 
+              borderRadius: '6px',
+              cursor: 'pointer'
+            }}
+          >
+            Back to Gists
+          </button>
+        </div>
+      </main>
+    )
+  }
+
+  // Get the first file from the gist
+  const firstFile = Object.values(gist.files)[0]
+  const fileName = firstFile?.filename || 'untitled'
+  const fileContent = firstFile?.content || '// File content not available'
+  const language = (() => {
+    const lang = firstFile?.language?.toLowerCase() || 'text'
+    // Map to supported languages or return undefined for auto-detection
+    const supportedLanguages = ['json', 'javascript', 'typescript', 'markdown']
+    return supportedLanguages.includes(lang) ? lang as 'json' | 'javascript' | 'typescript' | 'markdown' : undefined
+  })()
 
   return (
     <>
+      <Header />
       <main className="gist-detail" aria-labelledby="gist-heading">
         <header className="gist-detail__header">
           <div className="gist-detail__author">
             <div className="gist-detail__avatar" aria-hidden>
-              {getInitials(userName)}
+              {gist.owner.avatar_url ? (
+                <img src={gist.owner.avatar_url} alt={`${gist.owner.login} avatar`} />
+              ) : (
+                getInitials(gist.owner.login)
+              )}
             </div>
             <div>
               <h1 id="gist-heading" className="gist-detail__title">
-                <span className="gist-detail__name">{userName}</span>
+                <span className="gist-detail__name">{gist.owner.login}</span>
                 <span className="gist-detail__sep">/</span>
-                <span className="gist-detail__gist">{gistName}</span>
+                <span className="gist-detail__gist">{fileName}</span>
               </h1>
-              <div className="gist-detail__meta">{created}</div>
-              <p className="gist-detail__desc">{description}</p>
+              <div className="gist-detail__meta">{formatDate(gist.created_at)}</div>
+              <p className="gist-detail__desc">{gist.description || 'No description provided'}</p>
             </div>
           </div>
 
           <div className="gist-detail__actions" aria-label="Gist actions">
-            <button className="btn" aria-label="Fork gist">
+            <button 
+              className="btn" 
+              aria-label="Fork gist"
+              onClick={() => window.open(gist.git_pull_url, '_blank')}
+            >
               <span className="btn__icon" aria-hidden>
                 <GitFork size={16} />
               </span>
               Fork
-              <span className="btn__count" aria-label={`${forkCount} forks`}>
-                {forkCount}
+              <span className="btn__count" aria-label="Fork count">
+                {gist.comments || 0}
               </span>
             </button>
-            <button className="btn" aria-label="Star gist">
+            <button 
+              className="btn" 
+              aria-label="Star gist"
+              onClick={() => window.open(gist.html_url, '_blank')}
+            >
               <span className="btn__icon" aria-hidden>
                 <Star size={16} />
               </span>
               Star
-              <span className="btn__count" aria-label={`${starCount} stars`}>
-                {starCount}
+              <span className="btn__count" aria-label="Star count">
+                {gist.comments || 0}
               </span>
             </button>
           </div>
@@ -84,7 +195,7 @@ export default function GistDetailPage() {
             {fileName}
           </div>
           <div className="gist-detail__editor">
-            <GistEditor value={code} language="json" readOnly height={520} />
+            <GistEditor value={fileContent} language={language} readOnly height={520} />
           </div>
         </section>
       </main>
