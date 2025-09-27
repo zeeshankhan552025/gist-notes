@@ -5,7 +5,7 @@ import { useNavigate } from "react-router-dom"
 import { Header } from "../../layout/header"
 import "./create-gist.scss"
 import GistFileEditor, { type GistFile } from "../../components/gist-file-editor"
-import { githubService } from "../../services/github"
+import { githubApiService } from "../../services/github-api"
 import { useAuth } from "../../contexts/AuthContext"
 import { v4 as uuidv4 } from "uuid"
 
@@ -83,12 +83,8 @@ export default function CreateGistPage() {
         files: gistFiles
       }
 
-      console.log("Creating gist with data:", gistData)
-
       // Create the gist on GitHub
-      const createdGist = await githubService.createGist(gistData)
-      
-      console.log("Gist created successfully:", createdGist)
+      const createdGist = await githubApiService.createGist(gistData)
       
       // Show success message
       setSuccess(`Gist created successfully! View it at: ${createdGist.html_url}`)
@@ -99,8 +95,6 @@ export default function CreateGistPage() {
       }, 2000)
       
     } catch (error) {
-      console.error("Error creating gist:", error)
-      
       if (error instanceof Error) {
         if (error.message.includes('401')) {
           setError("Authentication failed. Please log in again with GitHub.")

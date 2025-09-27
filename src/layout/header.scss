@@ -101,7 +101,6 @@
     
     &:focus {
       background-color: #ffffff !important;
-      color: #003B44 !important;
       border-color: #40a9ff !important;
       box-shadow: 0 0 0 2px rgba(64, 169, 255, 0.2) !important;
     }
@@ -116,12 +115,10 @@
       opacity: 0.8;
     }
   }
-}
 
-// Responsive design
-@media (max-width: 768px) {
-  .topbar {
-    padding: 0 0.5rem;
+  &__avatar {
+    background-color: #1890ff !important;
+    cursor: pointer;
 
     &__inner {
       gap: 0.5rem;

@@ -4,7 +4,7 @@ import { Header } from "../../layout/header"
 import { PublicGistsTable } from "../../components/public-gists-table"
 import { PublicGistsGrid } from "../../components/public-gists-grid"
 import { Pagination } from "../../components/pagination"
-import { githubService, type GitHubGist } from "../../services/github"
+import { githubApiService, type GitHubGist } from "../../services/github-api"
 import "./landing.scss"
 
 type ViewMode = 'list' | 'grid'
@@ -25,7 +25,7 @@ export default function LandingPage() {
   const fetchGists = async (page: number) => {
     try {
       setLoading(true)
-      const response = await githubService.fetchPublicGists(page)
+      const response = await githubApiService.fetchPublicGists(page)
       setGists(response.gists)
       setHasNext(response.hasNext)
       setHasPrev(response.hasPrev)
@@ -34,9 +34,8 @@ export default function LandingPage() {
       // Estimate total pages based on current data
       // Since we don't know exact total, we'll show at least current + 1 if hasNext
       setTotalPages(response.hasNext ? page + 1 : page)
-    } catch (error) {
+    } catch (error: unknown) {
       message.error('Failed to fetch gists. Please try again.')
-      console.error('Error fetching gists:', error)
     } finally {
       setLoading(false)
     }
@@ -47,11 +46,8 @@ export default function LandingPage() {
   }, [])
 
   const handleSearchResult = (result: any) => {
-    console.log('📄 Landing page received search result:', result)
-    
     if (result.cleared) {
       // Search input was cleared, reset all search state
-      console.log('📄 Search cleared, resetting state')
       setSearchResult(null)
       setSearchResults([])
       setHasSearched(false)
@@ -62,24 +58,20 @@ export default function LandingPage() {
     
     if (result.multiple && result.results) {
       // Multiple results from content search (including empty results)
-      console.log('📄 Setting multiple search results:', result.results.length)
       setSearchResults(result.results)
       setSearchResult(null)
     } else if (result && !result.multiple) {
       // Single result from ID search
-      console.log('📄 Setting single search result:', result.id)
       setSearchResult(result)
       setSearchResults([])
     } else {
       // No results or invalid result
-      console.log('📄 No valid results received')
       setSearchResult(null)
       setSearchResults([])
     }
   }
 
   const clearSearch = () => {
-    console.log('📄 Clearing search results')
     setSearchResult(null)
     setSearchResults([])
     setHasSearched(false) // Reset search state

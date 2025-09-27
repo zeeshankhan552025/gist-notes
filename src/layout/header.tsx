@@ -3,7 +3,7 @@ import { Input, Button, Avatar, Dropdown, message } from "antd"
 import { SearchOutlined, UserOutlined, LogoutOutlined, SettingOutlined } from "@ant-design/icons"
 import { useNavigate } from "react-router-dom"
 import type { MenuProps } from "antd"
-import { githubService } from "../services/github"
+import { githubApiService } from "../services/github-api"
 import { useAuth } from "../contexts/AuthContext"
 import "./header.scss"
 
@@ -21,8 +21,7 @@ export function Header({ onSearchResult }: HeaderProps) {
     try {
       await login()
       message.success('Successfully logged in with GitHub!')
-    } catch (error) {
-      console.error('Login failed:', error)
+    } catch (error: unknown) {
       message.error('Failed to login. Please try again.')
     }
   }
@@ -31,8 +30,7 @@ export function Header({ onSearchResult }: HeaderProps) {
     try {
       await logout()
       message.success('Logged out successfully')
-    } catch (error) {
-      console.error('Logout failed:', error)
+    } catch (error: unknown) {
       message.error('Failed to logout. Please try again.')
     }
   }
@@ -73,19 +71,13 @@ export function Header({ onSearchResult }: HeaderProps) {
     
     // If input is cleared, reset search results
     if (!value.trim() && onSearchResult) {
-      console.log('🔍 Search input cleared, resetting results')
       onSearchResult({ cleared: true })
     }
   }
 
   const handleSearch = async (e?: React.FormEvent) => {
-    console.log('🔍 Search triggered, input:', searchValue)
-    console.log('🔍 isAuthenticated:', isAuthenticated)
-    console.log('🔍 onSearchResult handler provided:', !!onSearchResult)
-    
     if (e) {
       e.preventDefault() // Prevent form submission
-      console.log('🔍 Form submission prevented')
     }
     
     if (!searchValue.trim()) {
@@ -96,45 +88,45 @@ export function Header({ onSearchResult }: HeaderProps) {
     try {
       setSearching(true)
       const input = searchValue.trim()
-      console.log('🔍 Processing search input:', input)
       
       let results: any[] = []
-      
       // Check if input looks like a Gist ID or URL
       const gistId = extractGistId(input)
-      console.log('🔍 Extracted gist ID:', gistId)
-      console.log('🔍 Original input !== extracted ID:', gistId !== input)
-      console.log('🔍 Gist ID length:', gistId.length)
       
       if (gistId !== input && gistId.length >= 20) {
         // It's a URL or valid Gist ID, search by ID
-        console.log('🔍 Searching by Gist ID:', gistId)
-        const gist = await githubService.searchGistById(gistId)
-        if (gist) {
-          console.log('🔍 Found gist by ID:', gist.id)
-          results = [gist]
-        } else {
-          console.log('🔍 No gist found for ID:', gistId)
+        try {
+          const gist = await githubApiService.searchGistById(gistId)
+          if (gist) {
+            results = [gist]
+          }
+        } catch (error: unknown) {
+          if (error instanceof Error && error.message.includes('404')) {
+            message.error('Gist not found or is private. Please check the Gist ID.')
+          } else {
+            message.error('Error searching. Please try again.')
+          }
         }
       } else if (isAuthenticated) {
         // It's search terms, search by content (requires authentication)
-        console.log('🔍 Searching by content:', input)
-        results = await githubService.searchGists(input)
-        console.log('🔍 Content search results:', results.length)
+        try {
+          results = await githubApiService.searchGists(input)
+        } catch (error: unknown) {
+          if (error instanceof Error && error.message.includes('403')) {
+            message.error('Rate limit exceeded. Please try again later.')
+          } else {
+            message.error('Error searching. Please try again.')
+          }
+        }
       } else {
         // Not authenticated, suggest login for content search
-        console.log('🔍 Not authenticated, showing login message')
         message.warning('Please log in with GitHub to search gist content, or paste a gist URL/ID for direct access.')
         return
       }
       
-      console.log('🔍 Final results:', results.length, results)
-      
       if (results.length > 0) {
-        console.log('🔍 Search results found:', results)
         message.success(`Found ${results.length} gist${results.length > 1 ? 's' : ''}!`)
         if (onSearchResult) {
-          console.log('🔍 Calling onSearchResult handler')
           // Page will handle showing the results inline
           if (results.length === 1) {
             onSearchResult(results[0])
@@ -143,35 +135,20 @@ export function Header({ onSearchResult }: HeaderProps) {
             onSearchResult({ multiple: true, results })
           }
         } else {
-          console.log('🔍 No onSearchResult handler, navigating to gist')
           // No page handler, navigate to first gist detail page
           navigate(`/gist/${results[0].id}`)
         }
         // Clear search input after successful search
         setSearchValue('')
       } else {
-        console.log('🔍 No results found')
         // Still call the handler to let the page know a search was performed
         if (onSearchResult) {
-          console.log('🔍 Calling onSearchResult with empty results')
           onSearchResult({ multiple: true, results: [] })
         }
         message.error('No gists found. Try different search terms.')
-        console.log('No results found for:', input)
-      }
-    } catch (error: any) {
-      console.error('🔍 Search error:', error)
-      if (error.message && error.message.includes('Authentication required')) {
-        message.error('Please log in with GitHub to search gist content.')
-      } else if (error.message && error.message.includes('404')) {
-        message.error('Gist not found or is private. Please check the Gist ID.')
-      } else if (error.message && error.message.includes('403')) {
-        message.error('Rate limit exceeded. Please try again later.')
-      } else {
-        message.error('Error searching. Please try again.')
       }
     } finally {
-      setSearching(false)
+      // no-op
     }
   }
 
@@ -235,7 +212,6 @@ export function Header({ onSearchResult }: HeaderProps) {
         <div 
           className="topbar__brand" 
           aria-label="Brand"
-          style={{ cursor: 'pointer' }}
           onClick={() => navigate('/')}
         >
           <span aria-hidden="true">
@@ -291,7 +267,7 @@ export function Header({ onSearchResult }: HeaderProps) {
                 <div className="topbar__user-menu">
                   <Avatar 
                     size={32}
-                    style={{ backgroundColor: '#1890ff', cursor: 'pointer' }}
+                    className="topbar__avatar"
                     src={userInfo?.photoURL}
                   >
                     {!userInfo?.photoURL && getUserInitials(userInfo?.displayName || null)}

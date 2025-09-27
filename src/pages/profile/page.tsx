@@ -7,8 +7,8 @@ import { ProfileGistList } from "../../components/profile-gist-list"
 import { ProfileGistsTable } from "../../components/profile-gists-table"
 import { ProfileSidebar } from "../../components/profile-sidebar"
 import { Pagination } from "../../components/pagination"
-import { githubService } from "../../services/github"
-import type { GitHubGist } from "../../services/github"
+import { githubApiService } from "../../services/github-api"
+import type { GitHubGist } from "../../services/github-api"
 import "./profile.scss"
 
 type ViewMode = 'list' | 'card'
@@ -38,9 +38,7 @@ export default function ProfilePage() {
 
     try {
       setLoadingContent(true)
-      const gistResponse = await githubService.fetchAuthenticatedUserGists(page)
-      console.log('GitHub Gists Response:', gistResponse)
-      console.log('Number of gists:', gistResponse.gists.length)
+      const gistResponse = await githubApiService.fetchAuthenticatedUserGists(page)
       
       setGists(gistResponse.gists)
       setCurrentPage(gistResponse.currentPage)
@@ -50,11 +48,9 @@ export default function ProfilePage() {
       
       // Fetch content for each gist
       if (gistResponse.gists.length > 0) {
-        console.log('Fetching individual gist content...')
-        
         const contentPromises = gistResponse.gists.slice(0, 5).map(async (gist) => {
           try {
-            const fullGist = await githubService.searchGistById(gist.id)
+            const fullGist = await githubApiService.searchGistById(gist.id)
             if (fullGist && fullGist.files) {
               const firstFile = Object.values(fullGist.files)[0]
               return {
@@ -62,8 +58,7 @@ export default function ProfilePage() {
                 content: firstFile?.content || 'No content available'
               }
             }
-          } catch (error) {
-            console.error(`Error fetching content for gist ${gist.id}:`, error)
+          } catch (error: unknown) {
             return {
               gistId: gist.id,
               content: 'Error loading content'
@@ -78,12 +73,10 @@ export default function ProfilePage() {
           contentMap[gistId] = content
         })
         setGistContents(contentMap)
-        console.log('Loaded gist contents:', contentMap)
       }
       
-    } catch (error) {
-      console.error('Error fetching gists:', error)
-      message.error('Failed to load gists: ' + (error as Error).message)
+    } catch (error: unknown) {
+      message.error('Failed to load gists.')
     } finally {
       setLoadingContent(false)
     }
@@ -118,24 +111,15 @@ export default function ProfilePage() {
       }
 
       try {
-        console.log('Starting data fetch...')
-        console.log('Auth token available:', !!githubToken)
-        
         // Fetch user's GitHub profile data
-        const userData = await githubService.getAuthenticatedUser()
-        console.log('GitHub User Data:', userData)
+        const userData = await githubApiService.getAuthenticatedUser()
         setGithubUserData(userData)
 
         // Fetch initial page of gists
         await fetchGists(1)
         
-      } catch (error) {
-        console.error('Error fetching user data:', error)
-        console.error('Error details:', {
-          message: (error as Error).message,
-          stack: (error as Error).stack
-        })
-        message.error('Failed to load profile data: ' + (error as Error).message)
+      } catch (error: unknown) {
+        message.error('Failed to load profile data')
         
         // Set empty state so UI doesn't stay loading
         setGithubUserData({})
@@ -160,13 +144,10 @@ export default function ProfilePage() {
     publicRepos: githubUserData?.public_repos || 0,
   }
 
-  console.log('Profile object:', profile)
-
   // Helper function to transform GitHub gists to the format expected by ProfileGistList
   const transformGistsForDisplay = (gists: GitHubGist[]) => {
     return gists.map(gist => {
       const firstFile = Object.values(gist.files)[0]
-      console.log('Processing gist:', gist.id, 'First file:', firstFile)
       
       // Use fetched content if available, otherwise try from API response
       let contentLines = ['// Loading content...']
@@ -246,25 +227,6 @@ export default function ProfilePage() {
                 {gists.length}
               </span>
             </div>
-            <div className="profile-page__view-switch" aria-label="View options">
-              <button 
-                className={`profile-page__icon-button ${viewMode === 'card' ? 'profile-page__icon-button--active' : ''}`}
-                onClick={() => setViewMode('card')}
-                aria-label="Card view"
-                title="Card view"
-              >
-                <img src="/public/card.svg" alt="" />
-              </button>
-
-              <button 
-                className={`profile-page__icon-button ${viewMode === 'list' ? 'profile-page__icon-button--active' : ''}`}
-                onClick={() => setViewMode('list')}
-                aria-label="Table view"
-                title="Table view"
-              >
-                <img src="/public/list.svg" alt="" />
-              </button>
-            </div>
           </header>
 
           {searchResult || searchResults.length > 0 ? (
@@ -275,10 +237,8 @@ export default function ProfilePage() {
                 </div>
                 <button className="btn" onClick={clearSearch}>Clear</button>
               </div>
-              {viewMode === 'card' ? (
+              {(
                 <ProfileGistList items={transformGistsForDisplay(searchResult ? [searchResult] : searchResults)} />
-              ) : (
-                <ProfileGistsTable gists={searchResult ? [searchResult] : searchResults} loading={false} />
               )}
             </>
           ) : gists.length > 0 ? (
@@ -288,10 +248,8 @@ export default function ProfilePage() {
                   Loading gist content...
                 </div>
               )}
-              {viewMode === 'card' ? (
+              {(
                 <ProfileGistList items={transformGistsForDisplay(gists)} />
-              ) : (
-                <ProfileGistsTable gists={gists} loading={loadingContent} />
               )}
             </>
           ) : (

@@ -3,7 +3,7 @@ import { useParams, useNavigate } from "react-router-dom"
 import { useState, useEffect } from "react"
 import { Skeleton, message } from "antd"
 import { Header } from "../../layout/header"
-import { githubService, type GitHubGist } from "../../services/github"
+import { githubApiService, type GitHubGist } from "../../services/github-api"
 import "./gist-detail.scss"
 import GistEditor from "../../components/gist-editor"
 
@@ -25,15 +25,14 @@ export default function GistDetailPage() {
       try {
         setLoading(true)
         setError(null)
-        const gistData = await githubService.searchGistById(gistId)
+        const gistData = await githubApiService.searchGistById(gistId)
         
         if (!gistData) {
           setError('Gist not found')
         } else {
           setGist(gistData)
         }
-      } catch (err) {
-        console.error('Error fetching gist:', err)
+      } catch (err: unknown) {
         setError('Failed to load gist')
         message.error('Failed to load gist details')
       } finally {

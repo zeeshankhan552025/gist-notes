@@ -2,7 +2,8 @@ import { Avatar, Button, Table, Skeleton } from "antd"
 import type { ColumnsType } from "antd/es/table"
 import { ForkOutlined, StarOutlined } from "@ant-design/icons"
 import { useNavigate } from "react-router-dom"
-import type { GitHubGist } from "../services/github"
+import type { GitHubGist } from "../services/github-api"
+
 import "../pages/public-gist/table/public-gist-table-view.scss"
 
 type Row = {

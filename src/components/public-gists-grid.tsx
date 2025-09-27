@@ -1,4 +1,4 @@
-import type { GitHubGist } from "../services/github"
+import type { GitHubGist } from "../services/github-api"
 import GistCard from "./gist-card"
 import "./public-gist-grid-view.scss"
 
