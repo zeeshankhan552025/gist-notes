@@ -116,10 +116,13 @@ export default function CreateGistPage() {
   return (
     <>
       <Header />
+      <header>
+        <h1 id="create-gist-title" className="gist-create__title">
+          Create Gist
+        </h1>
+      </header>
       <main className="gist-create" role="main" aria-labelledby="create-gist-title">
-      <h1 id="create-gist-title" className="gist-create__title">
-        Create Gist
-      </h1>
+    
 
       <form className="gist-create__form" onSubmit={handleSubmit}>
         {error && (
@@ -134,9 +137,7 @@ export default function CreateGistPage() {
           </div>
         )}
 
-        <label className="gist-create__label" htmlFor="gist-description">
-          Description
-        </label>
+
         <input
           id="gist-description"
           className="gist-create__description"

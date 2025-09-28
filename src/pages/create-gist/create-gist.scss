@@ -14,8 +14,11 @@ $danger-500: #e5484d;
 
   &__title {
     font-size: 22px;
-    font-weight: 600;
-    margin-bottom: 16px;
+    font-weight: 400;
+    margin: 30px 102px;
+    font-weight: 400;
+    color:#3D3D3D;
+
   }
 
   &__form {
@@ -103,6 +106,7 @@ $danger-500: #e5484d;
     justify-content: space-between;
     align-items: center;
     margin-top: 8px;
+    margin-bottom: 12px;
   }
 }
 
@@ -217,7 +221,7 @@ $danger-500: #e5484d;
   }
 
   &__filename {
-    flex: 1;
+    flex: 0.3;
     height: 36px;
     border: 1px solid $neutral-300;
     background: #fff;

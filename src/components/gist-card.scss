@@ -261,6 +261,7 @@
 
   &__username {
     color: var(--gist-card-accent);
+    font-weight: 400;
     
     &:hover {
       text-decoration: underline;

@@ -156,15 +156,14 @@ export function ProfileGistList({ items }: { items: GistItem[] }) {
                   </div>
                   <div className="profile-gist-card__details">
                     <span className="profile-gist-card__created">{g.createdAt}</span>
-                    {g.description && (
-                      <>
-                        <span className="profile-gist-card__dot" aria-hidden="true">•</span>
-                        <span className="profile-gist-card__description" title={g.description}>
-                          {g.description}
-                        </span>
-                      </>
-                    )}
                   </div>
+                  {g.description && (
+                    <div className="profile-gist-card__description-line">
+                      <span className="profile-gist-card__description" title={g.description}>
+                        {g.description}
+                      </span>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>

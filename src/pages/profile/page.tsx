@@ -175,7 +175,7 @@ export default function ProfilePage() {
         owner: profile.name || 'GitHub User',
         ownerAvatar: profile.avatarUrl,
         gistName: gist.description || `Gist ${gist.id.slice(0, 7)}`,
-        description: gist.description || 'No description provided',
+        description: gist.description ? `${gist.description}` : 'No description provided',
         createdAt: `Created ${new Date(gist.created_at).toLocaleDateString()}`,
         lines: contentLines,
         language: firstFile?.language?.toLowerCase() || undefined

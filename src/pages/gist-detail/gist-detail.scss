@@ -59,13 +59,14 @@ $surface: #f8fafc;
     font-weight: 600;
 
     .gist-detail__name {
-      color: $text-strong;
+      color: #003B44;
+      font-weight: 400;
     }
     .gist-detail__sep {
       color: $text-muted;
     }
     .gist-detail__gist {
-      color: $text-strong;
+      color: #003B44;
     }
   }
 

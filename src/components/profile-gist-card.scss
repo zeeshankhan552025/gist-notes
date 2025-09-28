@@ -144,7 +144,7 @@
   &__author-name {
     font-size: 14px;
     font-weight: 600;
-    color: var(--profile-gist-card-text);
+    color: #003B44;
     line-height: 1.2;
     margin-bottom: 4px;
     display: flex;
@@ -153,17 +153,17 @@
   }
 
   &__username {
-    color: var(--profile-gist-card-text);
-    font-weight: 600;
+    color:#003B44;
+    font-weight: 400;
   }
 
   &__separator {
-    color: var(--profile-gist-card-text-muted);
+    color:#003B44;
     font-weight: 400;
   }
 
   &__gist-name {
-    color: #0366d6;
+    color:#003B44;
     font-weight: 600;
     white-space: nowrap;
     overflow: hidden;
@@ -198,6 +198,19 @@
     overflow: hidden;
     text-overflow: ellipsis;
     min-width: 0;
+  }
+
+  &__description-line {
+    margin-top: 4px;
+    display: block;
+    
+    .profile-gist-card__description {
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      color: var(--profile-gist-card-text-muted);
+      font-size: 13px;
+    }
   }
 }
 
