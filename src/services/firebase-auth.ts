@@ -58,15 +58,9 @@ export class FirebaseAuthService {
       return { user: authUser, token };
 
     } catch (error: any) {
-      // Handle different error types
-      const errorCode = error.code;
-      const errorMessage = error.message;
-      
-      // The email of the user's account used.
-      const email = error.customData?.email;
-      
-      // The AuthCredential type that was used.
-      const credential = GithubAuthProvider.credentialFromError(error);
+
+        // The AuthCredential type that was used.
+       GithubAuthProvider.credentialFromError(error);
       
       throw error;
     }

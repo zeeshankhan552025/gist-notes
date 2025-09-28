@@ -4,14 +4,12 @@ import { Spin, message } from "antd"
 import { Header } from "../../layout/header"
 import { useAuth } from "../../contexts/AuthContext"
 import { ProfileGistList } from "../../components/profile-gist-list"
-import { ProfileGistsTable } from "../../components/profile-gists-table"
 import { ProfileSidebar } from "../../components/profile-sidebar"
 import { Pagination } from "../../components/pagination"
 import { githubApiService } from "../../services/github-api"
 import type { GitHubGist } from "../../services/github-api"
 import "./profile.scss"
 
-type ViewMode = 'list' | 'card'
 
 export default function ProfilePage() {
   const { userInfo, isAuthenticated, githubToken } = useAuth()
@@ -20,7 +18,6 @@ export default function ProfilePage() {
   const [loadingContent, setLoadingContent] = useState(false)
   const [githubUserData, setGithubUserData] = useState<any>(null)
   const [gistContents, setGistContents] = useState<Record<string, string>>({})
-  const [viewMode, setViewMode] = useState<ViewMode>('card')
   const [searchResult, setSearchResult] = useState<GitHubGist | null>(null)
   const [searchResults, setSearchResults] = useState<GitHubGist[]>([])
   
