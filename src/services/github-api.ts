@@ -40,10 +40,9 @@ export interface GitHubGistResponse {
 class GitHubApiService {
   private baseURL = 'https://api.github.com'
   private api = createApi(this.baseURL)
-  private perPage = 10
 
-  async fetchPublicGists(page: number = 1): Promise<GitHubGistResponse> {
-    const response = await this.api.requestRaw(`/gists/public?page=${page}&per_page=${this.perPage}`)
+  async fetchPublicGists(page: number = 1, perPage: number = 10): Promise<GitHubGistResponse> {
+    const response = await this.api.requestRaw(`/gists/public?page=${page}&per_page=${perPage}`)
     if (!response.ok) throw new Error(`GitHub API error: ${response.status}`)
     const gists: GitHubGist[] = await response.json()
     const linkHeader = response.headers.get('link')
@@ -64,8 +63,8 @@ class GitHubApiService {
     return response.json()
   }
 
-  async fetchUserGists(username: string, page: number = 1): Promise<GitHubGistResponse> {
-    const response = await this.api.requestRaw(`/users/${username}/gists?page=${page}&per_page=${this.perPage}`)
+  async fetchUserGists(username: string, page: number = 1, perPage: number = 10): Promise<GitHubGistResponse> {
+    const response = await this.api.requestRaw(`/users/${username}/gists?page=${page}&per_page=${perPage}`)
     if (!response.ok) throw new Error(`GitHub API error: ${response.status}`)
     const gists: GitHubGist[] = await response.json()
     const linkHeader = response.headers.get('link')
@@ -74,10 +73,10 @@ class GitHubApiService {
     return { gists, hasNext, hasPrev, currentPage: page }
   }
 
-  async fetchAuthenticatedUserGists(page: number = 1): Promise<GitHubGistResponse> {
+  async fetchAuthenticatedUserGists(page: number = 1, perPage: number = 5): Promise<GitHubGistResponse> {
     const headers = firebaseAuthService.getGitHubApiHeaders()
     if (!headers.Authorization) throw new Error('No authentication token available')
-    const response = await this.api.requestRaw(`/gists?page=${page}&per_page=${this.perPage}`, { headers, auth: true })
+    const response = await this.api.requestRaw(`/gists?page=${page}&per_page=${perPage}`, { headers, auth: true })
     if (!response.ok) {
       const errorText = await response.text()
       throw new Error(`GitHub API error: ${response.status} - ${errorText}`)

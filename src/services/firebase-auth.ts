@@ -52,15 +52,12 @@ export class FirebaseAuthService {
         photoURL: result.user.photoURL,
         githubToken: token
       };
-
       // Store user info in localStorage as well
       this.storeUserInfo(authUser);
 
       return { user: authUser, token };
 
     } catch (error: any) {
-      console.error("Login Error:", error);
-      
       // Handle different error types
       const errorCode = error.code;
       const errorMessage = error.message;
@@ -71,14 +68,10 @@ export class FirebaseAuthService {
       // The AuthCredential type that was used.
       const credential = GithubAuthProvider.credentialFromError(error);
       
-      console.error("Error Code:", errorCode);
-      console.error("Error Message:", errorMessage);
-      console.error("Email:", email);
-      console.error("Credential from error:", credential);
-      
       throw error;
     }
   }
+
 
   /**
    * Logout the current user
@@ -87,12 +80,11 @@ export class FirebaseAuthService {
     try {
       await signOut(auth);
       this.clearStoredData();
-      console.log("User logged out successfully");
     } catch (error) {
-      console.error("Logout Error:", error);
       throw error;
     }
   }
+
 
   /**
    * Get the current user's authentication state
@@ -157,7 +149,6 @@ export class FirebaseAuthService {
    */
   getGitHubApiHeaders(): Record<string, string> {
     const token = this.getStoredToken();
-    console.log('Building headers with token:', token ? 'Token present' : 'No token');
     
     const headers = {
       'Authorization': token ? `Bearer ${token}` : '',
@@ -165,7 +156,6 @@ export class FirebaseAuthService {
       'Content-Type': 'application/json',
     };
     
-    console.log('Final headers:', headers);
     return headers;
   }
 }

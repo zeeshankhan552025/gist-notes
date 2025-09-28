@@ -143,7 +143,6 @@ export default function GistCard({ data, loading = false }: GistCardProps) {
       className={`gist-card ${!loading ? 'gist-card--clickable' : ''}`} 
       aria-label={`${data.authorName} / ${data.gistName}`}
       onClick={handleCardClick}
-      style={{ cursor: loading ? 'default' : 'pointer' }}
     >
       {/* Top-right view button */}
       <div className="gist-card__view-button-container">
@@ -165,24 +164,6 @@ export default function GistCard({ data, loading = false }: GistCardProps) {
           language={data.language || getLanguageFromFilename(data.gistName)}
           style={tomorrow}
           showLineNumbers={true}
-          customStyle={{
-            margin: 0,
-            padding: '16px',
-            fontSize: '13px',
-            lineHeight: '1.4',
-            backgroundColor: 'transparent',
-            border: 'none',
-            borderRadius: '0',
-            maxHeight: '200px',
-            overflow: 'hidden'
-          }}
-          lineNumberStyle={{
-            minWidth: '2.5em',
-            paddingRight: '1em',
-            color: '#6b7280',
-            fontSize: '12px',
-            userSelect: 'none'
-          }}
         >
           {data.codeSnippet}
         </SyntaxHighlighter>
@@ -194,12 +175,8 @@ export default function GistCard({ data, loading = false }: GistCardProps) {
           <Avatar
             size={32}
             src={data.avatarUrl}
-            style={{ 
-              flexShrink: 0,
-              backgroundColor: data.avatarUrl ? 'transparent' : "#0b3f46",
-              color: "#ffffff", 
-              fontWeight: "600" 
-            }}
+            className="gist-card__avatar"
+            data-has-avatar={Boolean(!!data.avatarUrl)}
             aria-label={`${data.authorName} avatar`}
           >
             {initials}

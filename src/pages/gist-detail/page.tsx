@@ -13,6 +13,7 @@ export default function GistDetailPage() {
   const [gist, setGist] = useState<GitHubGist | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [activeFile, setActiveFile] = useState<string>('')
 
   useEffect(() => {
     const fetchGist = async () => {
@@ -31,6 +32,11 @@ export default function GistDetailPage() {
           setError('Gist not found')
         } else {
           setGist(gistData)
+          // Set the first file as active by default
+          const firstFileName = Object.keys(gistData.files)[0]
+          if (firstFileName) {
+            setActiveFile(firstFileName)
+          }
         }
       } catch (err: unknown) {
         setError('Failed to load gist')
@@ -124,12 +130,20 @@ export default function GistDetailPage() {
     )
   }
 
-  // Get the first file from the gist
-  const firstFile = Object.values(gist.files)[0]
-  const fileName = firstFile?.filename || 'untitled'
-  const fileContent = firstFile?.content || '// File content not available'
+  // Get all files and the currently active file
+  const files = gist.files
+  const fileNames = Object.keys(files)
+  
+  // Debug logging
+  console.log('Gist files:', files)
+  console.log('File names:', fileNames)
+  console.log('Active file:', activeFile)
+  
+  const currentFile = activeFile && files[activeFile] ? files[activeFile] : null
+  const fileName = currentFile?.filename || 'untitled'
+  const fileContent = currentFile?.content || '// File content not available'
   const language = (() => {
-    const lang = firstFile?.language?.toLowerCase() || 'text'
+    const lang = currentFile?.language?.toLowerCase() || 'text'
     // Map to supported languages or return undefined for auto-detection
     const supportedLanguages = ['json', 'javascript', 'typescript', 'markdown']
     return supportedLanguages.includes(lang) ? lang as 'json' | 'javascript' | 'typescript' | 'markdown' : undefined
@@ -189,9 +203,19 @@ export default function GistDetailPage() {
           </div>
         </header>
 
-        <section className="gist-detail__file" aria-label="Gist file">
-          <div className="gist-detail__filetab" role="tab" aria-selected="true">
-            {fileName}
+        <section className="gist-detail__file" aria-label="Gist files">
+          <div className="gist-detail__filetabs" role="tablist">
+            {fileNames.map((filename) => (
+              <button
+                key={filename}
+                className={`gist-detail__filetab ${activeFile === filename ? 'gist-detail__filetab--active' : ''}`}
+                role="tab"
+                aria-selected={activeFile === filename}
+                onClick={() => setActiveFile(filename)}
+              >
+                {filename}
+              </button>
+            ))}
           </div>
           <div className="gist-detail__editor">
             <GistEditor value={fileContent} language={language} readOnly height={520} />

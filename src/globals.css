@@ -124,3 +124,31 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* Custom Ant Design Spin/Loader Color */
+.ant-spin-dot-item {
+  background-color: #0b3f46 !important;
+}
+
+.ant-spin-spinning {
+  color: #0b3f46 !important;
+}
+
+/* For large spinner dots */
+.ant-spin-lg .ant-spin-dot-item {
+  width: 24px !important;
+  height: 24px !important;
+  background-color: #0b3f46 !important;
+}
+
+/* Animation keyframes to ensure smooth color transition */
+@keyframes antSpinMove {
+  to {
+    opacity: 1;
+  }
+}
+
+.ant-spin-dot-item {
+  background-color: #0b3f46 !important;
+  animation: antSpinMove 1s infinite linear alternate;
+}

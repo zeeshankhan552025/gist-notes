@@ -60,7 +60,8 @@ export function Pagination({
     }
   }
 
-  if (!hasNext && !hasPrev && totalPages <= 1) {
+  // Only hide pagination if we're on page 1 and there's no next page
+  if (currentPage === 1 && !hasNext) {
     return null
   }
 
@@ -82,7 +83,7 @@ export function Pagination({
           className="pagination__page-input"
           disabled={loading}
         />
-        <span>of {totalPages}+</span>
+        <span>{hasNext ? `of ${totalPages}+` : `of ${currentPage}`}</span>
       </div>
       <div className="pagination__controls">
         <RightOutlined 

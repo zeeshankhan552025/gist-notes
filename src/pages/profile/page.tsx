@@ -44,7 +44,9 @@ export default function ProfilePage() {
       setCurrentPage(gistResponse.currentPage)
       setHasNext(gistResponse.hasNext)
       setHasPrev(gistResponse.hasPrev)
-      setTotalPages(gistResponse.hasNext ? page + 1 : page)
+      // For GitHub API pagination, we don't know total pages ahead of time
+      // Set a reasonable estimate to ensure pagination shows when there are more pages
+      setTotalPages(gistResponse.hasNext ? Math.max(page + 1, 2) : Math.max(page, 1))
       
       // Fetch content for each gist
       if (gistResponse.gists.length > 0) {
@@ -258,16 +260,14 @@ export default function ProfilePage() {
             </div>
           )}
 
-          {!searchResult && searchResults.length === 0 && (
-            <Pagination
-              currentPage={currentPage}
-              totalPages={totalPages}
-              hasNext={hasNext}
-              hasPrev={hasPrev}
-              onPageChange={handlePageChange}
-              loading={loadingContent}
-            />
-          )}
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            hasNext={hasNext}
+            hasPrev={hasPrev}
+            onPageChange={handlePageChange}
+            loading={loadingContent}
+          />
         </section>
       </div>
     </main>

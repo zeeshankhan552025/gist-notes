@@ -25,7 +25,7 @@ export default function LandingPage() {
   const fetchGists = async (page: number) => {
     try {
       setLoading(true)
-      const response = await githubApiService.fetchPublicGists(page)
+      const response = await githubApiService.fetchPublicGists(page, 10)
       setGists(response.gists)
       setHasNext(response.hasNext)
       setHasPrev(response.hasPrev)
