@@ -102,7 +102,7 @@ export default function LandingPage() {
               aria-label="Grid view"
               title="Grid view"
             >
-            <img src="/public/card.svg" alt="" />
+            <img src="/card.svg" alt="" />
     
             </button>
 
@@ -112,7 +112,7 @@ export default function LandingPage() {
               aria-label="List view"
               title="List view"
             >
-              <img src="/public/list.svg" alt="" />
+              <img src="/list.svg" alt="" />
             </button>
            
           </div>
