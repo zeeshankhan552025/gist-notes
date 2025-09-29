@@ -1,6 +1,6 @@
 
-import { useState, useEffect } from "react"
-import { Spin, message } from "antd"
+import { useCallback, useEffect, useState } from "react"
+import { message, Spin } from "antd"
 import { Header } from "../../layout/header"
 import { useAuth } from "../../contexts/AuthContext"
 import { ProfileGistList } from "../../components/profile-gist-list"
@@ -8,6 +8,7 @@ import { ProfileSidebar } from "../../components/profile-sidebar"
 import { Pagination } from "../../components/pagination"
 import { githubApiService } from "../../services/github-api"
 import type { GitHubGist } from "../../services/github-api"
+import type { GitHubUser } from "../../types/github.types"
 import "./profile.scss"
 
 
@@ -16,7 +17,7 @@ export default function ProfilePage() {
   const [gists, setGists] = useState<GitHubGist[]>([])
   const [loading, setLoading] = useState(true)
   const [loadingContent, setLoadingContent] = useState(false)
-  const [githubUserData, setGithubUserData] = useState<any>(null)
+  const [githubUserData, setGithubUserData] = useState<GitHubUser | null>(null)
   const [gistContents, setGistContents] = useState<Record<string, string>>({})
   const [searchResult, setSearchResult] = useState<GitHubGist | null>(null)
   const [searchResults, setSearchResults] = useState<GitHubGist[]>([])
@@ -28,7 +29,7 @@ export default function ProfilePage() {
   const [totalPages, setTotalPages] = useState(1)
   
   // Fetch user's gists with pagination
-  const fetchGists = async (page: number = 1) => {
+  const fetchGists = useCallback(async (page = 1) => {
     if (!isAuthenticated || !githubToken) {
       return
     }
@@ -50,14 +51,14 @@ export default function ProfilePage() {
         const contentPromises = gistResponse.gists.slice(0, 5).map(async (gist) => {
           try {
             const fullGist = await githubApiService.searchGistById(gist.id)
-            if (fullGist && fullGist.files) {
+            if (fullGist?.files) {
               const firstFile = Object.values(fullGist.files)[0]
               return {
                 gistId: gist.id,
-                content: firstFile?.content || 'No content available'
+                content: firstFile?.content ?? 'No content available'
               }
             }
-          } catch (error: unknown) {
+          } catch {
             return {
               gistId: gist.id,
               content: 'Error loading content'
@@ -74,26 +75,30 @@ export default function ProfilePage() {
         setGistContents(contentMap)
       }
       
-    } catch (error: unknown) {
+    } catch {
       message.error('Failed to load gists.')
     } finally {
       setLoadingContent(false)
     }
-  }
+  }, [isAuthenticated, githubToken])
 
   // Handle page change
   const handlePageChange = (page: number) => {
-    fetchGists(page)
+    void fetchGists(page)
   }
   
-  const handleSearchResult = (result: any) => {
-    if (result.multiple && result.results) {
+  const handleSearchResult = (result: GitHubGist | { cleared?: boolean; multiple?: boolean; results?: GitHubGist[] }) => {
+    if ('multiple' in result && result.multiple && result.results) {
       // Multiple results from content search
       setSearchResults(result.results)
       setSearchResult(null)
+    } else if ('cleared' in result && result.cleared) {
+      // Search cleared
+      setSearchResult(null)
+      setSearchResults([])
     } else {
       // Single result from ID search
-      setSearchResult(result)
+      setSearchResult(result as GitHubGist)
       setSearchResults([])
     }
   }
@@ -117,30 +122,30 @@ export default function ProfilePage() {
         // Fetch initial page of gists
         await fetchGists(1)
         
-      } catch (error: unknown) {
+      } catch {
         message.error('Failed to load profile data')
         
         // Set empty state so UI doesn't stay loading
-        setGithubUserData({})
+        setGithubUserData(null)
         setGists([])
       } finally {
         setLoading(false)
       }
     }
 
-    fetchUserData()
-  }, [isAuthenticated, githubToken])
+    void fetchUserData()
+  }, [isAuthenticated, githubToken, fetchGists])
 
   // Use real GitHub user data
   const profile = {
-    name: githubUserData?.name || githubUserData?.login || userInfo?.displayName || "GitHub User",
-    username: githubUserData?.login || "unknown", 
-    githubUrl: githubUserData?.html_url || `https://github.com/${githubUserData?.login || 'unknown'}`,
-    avatarUrl: githubUserData?.avatar_url || userInfo?.photoURL || null,
-    bio: githubUserData?.bio || null,
-    followers: githubUserData?.followers || 0,
-    following: githubUserData?.following || 0,
-    publicRepos: githubUserData?.public_repos || 0,
+    name: githubUserData?.name ?? githubUserData?.login ?? userInfo?.displayName ?? "GitHub User",
+    username: githubUserData?.login ?? "unknown", 
+    githubUrl: githubUserData?.html_url ?? `https://github.com/${githubUserData?.login ?? 'unknown'}`,
+    avatarUrl: githubUserData?.avatar_url ?? userInfo?.photoURL ?? null,
+    bio: githubUserData?.bio ?? null,
+    followers: githubUserData?.followers ?? 0,
+    following: githubUserData?.following ?? 0,
+    publicRepos: githubUserData?.public_repos ?? 0,
   }
 
   // Helper function to transform GitHub gists to the format expected by ProfileGistList
@@ -159,23 +164,23 @@ export default function ProfilePage() {
       } else {
         // Show file info when content is not available
         contentLines = [
-          `// ${firstFile?.filename || 'Unknown file'}`,
-          `// File size: ${firstFile?.size || 0} bytes`,
-          `// Language: ${firstFile?.language || 'Unknown'}`,
+          `// ${firstFile?.filename ?? 'Unknown file'}`,
+          `// File size: ${firstFile?.size ?? 0} bytes`,
+          `// Language: ${firstFile?.language ?? 'Unknown'}`,
           '// Content loading...'
         ]
       }
       
       return {
         id: gist.id,
-        fileName: firstFile?.filename || 'untitled',
-        owner: profile.name || 'GitHub User',
+        fileName: firstFile?.filename ?? 'untitled',
+        owner: profile.name ?? 'GitHub User',
         ownerAvatar: profile.avatarUrl,
-        gistName: gist.description || `Gist ${gist.id.slice(0, 7)}`,
+        gistName: gist.description ?? `Gist ${gist.id.slice(0, 7)}`,
         description: gist.description ? `${gist.description}` : 'No description provided',
         createdAt: `Created ${new Date(gist.created_at).toLocaleDateString()}`,
         lines: contentLines,
-        language: firstFile?.language?.toLowerCase() || undefined
+        language: firstFile?.language?.toLowerCase() ?? undefined
       }
     })
   }

@@ -1,0 +1,22 @@
+# Prettier ignore file
+node_modules/
+dist/
+build/
+coverage/
+*.min.js
+*.min.css
+
+# Generated files
+*.config.js
+vite.config.ts
+
+# Logs
+*.log
+
+# IDE files
+.vscode/
+.idea/
+
+# OS files
+.DS_Store
+Thumbs.db

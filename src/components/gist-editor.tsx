@@ -21,7 +21,7 @@ export default function GistEditor({
   onChange,
 }: GistEditorProps) {
   return (
-    <div className={`gist-editor ${className || ""}`}>
+    <div className={`gist-editor ${className ?? ""}`}>
       <Suspense fallback={
         <div style={{ 
           height: typeof height === 'number' ? `${height}px` : height,

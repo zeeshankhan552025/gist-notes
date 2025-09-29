@@ -1,14 +1,15 @@
 import { useState } from "react"
-import { Input, Button, Avatar, Dropdown, message } from "antd"
-import { SearchOutlined, UserOutlined, LogoutOutlined, SettingOutlined } from "@ant-design/icons"
+import { Avatar, Button, Dropdown, Input, message } from "antd"
+import { LogoutOutlined, SearchOutlined, SettingOutlined, UserOutlined } from "@ant-design/icons"
 import { useNavigate } from "react-router-dom"
 import type { MenuProps } from "antd"
 import { githubApiService } from "../services/github-api"
+import type { GitHubGist } from "../services/github-api"
 import { useAuth } from "../contexts/AuthContext"
 import "./header.scss"
 
 interface HeaderProps {
-  onSearchResult?: (gist: any) => void
+  onSearchResult?: (result: GitHubGist | { cleared?: boolean; multiple?: boolean; results?: GitHubGist[] }) => void
 }
 
 export function Header({ onSearchResult }: HeaderProps) {
@@ -21,7 +22,7 @@ export function Header({ onSearchResult }: HeaderProps) {
     try {
       await login()
       message.success('Successfully logged in with GitHub!')
-    } catch (error: unknown) {
+    } catch {
       message.error('Failed to login. Please try again.')
     }
   }
@@ -30,7 +31,7 @@ export function Header({ onSearchResult }: HeaderProps) {
     try {
       await logout()
       message.success('Logged out successfully')
-    } catch (error: unknown) {
+    } catch {
       message.error('Failed to logout. Please try again.')
     }
   }
@@ -48,7 +49,7 @@ export function Header({ onSearchResult }: HeaderProps) {
     // https://api.github.com/gists/abc123def456
     // abc123def456
     const urlPatterns = [
-      /gist\.github\.com\/[^\/]+\/([a-f0-9]+)/i,  // gist.github.com/user/id
+      /gist\.github\.com\/[^/]+\/([a-f0-9]+)/i,  // gist.github.com/user/id
       /api\.github\.com\/gists\/([a-f0-9]+)/i,     // api.github.com/gists/id
       /gists\/([a-f0-9]+)/i,                       // gists/id
       /([a-f0-9]{20,})/i                          // any long hex string
@@ -56,7 +57,7 @@ export function Header({ onSearchResult }: HeaderProps) {
     
     for (const pattern of urlPatterns) {
       const match = trimmed.match(pattern)
-      if (match && match[1]) {
+      if (match?.[1]) {
         return match[1]
       }
     }
@@ -66,12 +67,12 @@ export function Header({ onSearchResult }: HeaderProps) {
   }
 
   const handleSearchInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value
+    const {value} = e.target
     setSearchValue(value)
     
     // If input is cleared, reset search results
-    if (!value.trim() && onSearchResult) {
-      onSearchResult({ cleared: true })
+    if (!value.trim()) {
+      onSearchResult?.({ cleared: true })
     }
   }
 
@@ -89,7 +90,7 @@ export function Header({ onSearchResult }: HeaderProps) {
       setSearching(true)
       const input = searchValue.trim()
       
-      let results: any[] = []
+      let results: GitHubGist[] = []
       // Check if input looks like a Gist ID or URL
       const gistId = extractGistId(input)
       
@@ -150,7 +151,7 @@ export function Header({ onSearchResult }: HeaderProps) {
           }
         } else {
           // No page handler, navigate to first gist detail page
-          navigate(`/gist/${results[0].id}`)
+          void navigate(`/gist/${results[0].id}`)
         }
         // Clear search input after successful search
         setSearchValue('')
@@ -175,21 +176,21 @@ export function Header({ onSearchResult }: HeaderProps) {
   const handleSearchKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter') {
       e.preventDefault() // Prevent form submission
-      handleSearch()
+      void handleSearch()
     }
   }
 
-  const handleMenuClick = (info: any) => {
+  const handleMenuClick = (info: { key: string }) => {
     switch (info.key) {
       case 'profile':
-        navigate('/profile')
+        void navigate('/profile')
         break
       case 'settings':
         // You can navigate to settings page when it's created
         message.info('Settings page coming soon!')
         break
       case 'logout':
-        handleLogout()
+        void handleLogout()
         break
     }
   }
@@ -232,7 +233,7 @@ export function Header({ onSearchResult }: HeaderProps) {
         <div 
           className="topbar__brand" 
           aria-label="Brand"
-          onClick={() => navigate('/')}
+          onClick={() => void navigate('/')}
         >
           <span aria-hidden="true">
             <img src="/logo.svg" alt="EMUMBA Logo" />
@@ -242,7 +243,7 @@ export function Header({ onSearchResult }: HeaderProps) {
 
         {/* Right side - Search and User actions */}
         <div className="topbar__right">
-          <form className="topbar__search" role="search" aria-label="Search gists by ID" onSubmit={handleSearch}>
+          <form className="topbar__search" role="search" aria-label="Search gists by ID" onSubmit={(e) => void handleSearch(e)}>
             <Input
               allowClear
               placeholder={isAuthenticated 
@@ -254,7 +255,7 @@ export function Header({ onSearchResult }: HeaderProps) {
                   type="text" 
                   size="small"
                   loading={searching}
-                  onClick={() => handleSearch()}
+                  onClick={() => void handleSearch()}
                   icon={<SearchOutlined />}
                   aria-label="Search"
                 >
@@ -274,7 +275,7 @@ export function Header({ onSearchResult }: HeaderProps) {
               <>
                 <Button 
                   type="default" 
-                  onClick={() => navigate('/create-gist')}
+                  onClick={() => void navigate('/create-gist')}
                   style={{ marginRight: '12px' }}
                 >
                   Create Gist
@@ -290,7 +291,7 @@ export function Header({ onSearchResult }: HeaderProps) {
                     className="topbar__avatar"
                     src={userInfo?.photoURL}
                   >
-                    {!userInfo?.photoURL && getUserInitials(userInfo?.displayName || null)}
+                    {!userInfo?.photoURL && getUserInitials(userInfo?.displayName ?? null)}
                   </Avatar>
                 </div>
               </Dropdown>
@@ -299,7 +300,7 @@ export function Header({ onSearchResult }: HeaderProps) {
               <Button 
                 type="primary" 
                 className="topbar__login" 
-                onClick={handleGitHubLogin}
+                onClick={() => void handleGitHubLogin()}
               >
                 Login
               </Button>

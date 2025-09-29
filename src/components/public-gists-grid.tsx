@@ -50,13 +50,13 @@ export function PublicGistsGrid({ gists, loading }: PublicGistsGridProps) {
         const cardData = {
           id: gist.id,
           authorName: gist.owner.login,
-          gistName: Object.keys(gist.files)[0] || 'untitled',
-          description: gist.description || 'No description',
+          gistName: Object.keys(gist.files)[0] ?? 'untitled',
+          description: gist.description ?? 'No description',
           createdAt: formatCreatedDate(gist.created_at),
           codeSnippet: getCodeSnippet(gist),
           language: getGistLanguage(gist),
           avatarUrl: gist.owner.avatar_url,
-          viewLabel: Object.keys(gist.files)[0] || 'untitled',
+          viewLabel: Object.keys(gist.files)[0] ?? 'untitled',
           gistUrl: gist.html_url
         }
 
@@ -91,18 +91,18 @@ function getCodeSnippet(gist: GitHubGist): string {
   
   // Generate a more realistic code snippet based on file type
   const language = firstFile.language?.toLowerCase()
-  const filename = firstFile.filename
+  const {filename} = firstFile
   
   if (language === 'javascript' || filename.endsWith('.js')) {
     return `// ${filename}\nfunction ${filename.replace('.js', '').replace(/[^a-zA-Z0-9]/g, '')}() {\n  console.log('Hello, World!');\n  return true;\n}\n\nexport default ${filename.replace('.js', '').replace(/[^a-zA-Z0-9]/g, '')};`
   } else if (language === 'json' || filename.endsWith('.json')) {
-    return `{\n  "name": "${filename.replace('.json', '')}",\n  "version": "1.0.0",\n  "description": "${gist.description || 'A gist file'}",\n  "main": "index.js",\n  "scripts": {\n    "start": "node index.js"\n  }\n}`
+    return `{\n  "name": "${filename.replace('.json', '')}",\n  "version": "1.0.0",\n  "description": "${gist.description ?? 'A gist file'}",\n  "main": "index.js",\n  "scripts": {\n    "start": "node index.js"\n  }\n}`
   } else if (language === 'python' || filename.endsWith('.py')) {
     return `# ${filename}\ndef main():\n    print("Hello, World!")\n    return True\n\nif __name__ == "__main__":\n    main()`
   } else if (language === 'markdown' || filename.endsWith('.md')) {
-    return `# ${filename.replace('.md', '').replace(/[^a-zA-Z0-9 ]/g, ' ')}\n\n${gist.description || 'This is a markdown file.'}\n\n## Getting Started\n\nThis gist contains useful code snippets.\n\n\`\`\`bash\nnpm install\n\`\`\``
+    return `# ${filename.replace('.md', '').replace(/[^a-zA-Z0-9 ]/g, ' ')}\n\n${gist.description ?? 'This is a markdown file.'}\n\n## Getting Started\n\nThis gist contains useful code snippets.\n\n\`\`\`bash\nnpm install\n\`\`\``
   } else {
-    return `// ${filename}\n// ${language || 'Text'} file\n// Size: ${firstFile.size} bytes\n// Created: ${new Date(gist.created_at).toLocaleDateString()}\n\n/* Content preview not available */`
+    return `// ${filename}\n// ${language ?? 'Text'} file\n// Size: ${firstFile.size} bytes\n// Created: ${new Date(gist.created_at).toLocaleDateString()}\n\n/* Content preview not available */`
   }
 }
 

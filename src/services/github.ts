@@ -1,4 +1,5 @@
 import { firebaseAuthService } from './firebase-auth'
+import type { GitHubUser } from '../types/github.types'
 
 export interface GitHubGist {
   id: string
@@ -7,16 +8,14 @@ export interface GitHubGist {
   public: boolean
   created_at: string
   updated_at: string
-  files: {
-    [filename: string]: {
+  files: Record<string, {
       filename: string
       type: string
       language: string | null
       raw_url: string
       size: number
       content?: string
-    }
-  }
+    }>
   owner: {
     login: string
     id: number
@@ -40,7 +39,7 @@ class GitHubService {
   private baseURL = 'https://api.github.com'
   private perPage = 10
 
-  async fetchPublicGists(page: number = 1): Promise<GitHubGistResponse> {
+  async fetchPublicGists(page = 1): Promise<GitHubGistResponse> {
     try {
       const response = await fetch(
         `${this.baseURL}/gists/public?page=${page}&per_page=${this.perPage}`
@@ -50,7 +49,7 @@ class GitHubService {
         throw new Error(`GitHub API error: ${response.status}`)
       }
 
-      const gists: GitHubGist[] = await response.json()
+      const gists = await response.json() as GitHubGist[]
       
       // Check for next page by looking at Link header
       const linkHeader = response.headers.get('link')
@@ -90,7 +89,7 @@ class GitHubService {
         throw new Error(`GitHub API error: ${response.status}`)
       }
 
-      const gist = await response.json()
+      const gist = await response.json() as GitHubGist
       console.log(`Gist ${gistId} content loaded:`, Object.keys(gist.files))
       return gist
     } catch (error) {
@@ -99,7 +98,7 @@ class GitHubService {
     }
   }
 
-  async fetchUserGists(username: string, page: number = 1): Promise<GitHubGistResponse> {
+  async fetchUserGists(username: string, page = 1): Promise<GitHubGistResponse> {
     try {
       const response = await fetch(
         `${this.baseURL}/users/${username}/gists?page=${page}&per_page=${this.perPage}`
@@ -109,7 +108,7 @@ class GitHubService {
         throw new Error(`GitHub API error: ${response.status}`)
       }
 
-      const gists: GitHubGist[] = await response.json()
+      const gists = await response.json() as GitHubGist[]
       
       const linkHeader = response.headers.get('link')
       const hasNext = linkHeader ? linkHeader.includes('rel="next"') : false
@@ -130,7 +129,7 @@ class GitHubService {
   /**
    * Fetch authenticated user's gists using stored Firebase auth token
    */
-  async fetchAuthenticatedUserGists(page: number = 1): Promise<GitHubGistResponse> {
+  async fetchAuthenticatedUserGists(page = 1): Promise<GitHubGistResponse> {
     try {
       const headers = firebaseAuthService.getGitHubApiHeaders()
       console.log('Fetching gists with headers:', headers)
@@ -151,7 +150,7 @@ class GitHubService {
         throw new Error(`GitHub API error: ${response.status} - ${errorText}`)
       }
 
-      const gists: GitHubGist[] = await response.json()
+      const gists = await response.json() as GitHubGist[]
       console.log('Raw gists data:', gists)
       
       const linkHeader = response.headers.get('link')
@@ -195,7 +194,7 @@ class GitHubService {
         throw new Error(`GitHub API error: ${response.status}`)
       }
 
-      return await response.json()
+      return await response.json() as GitHubGist
     } catch (error) {
       console.error('Error creating gist:', error)
       throw error
@@ -226,7 +225,7 @@ class GitHubService {
         throw new Error(`GitHub API error: ${response.status}`)
       }
 
-      return await response.json()
+      return await response.json() as GitHubGist
     } catch (error) {
       console.error('Error updating gist:', error)
       throw error
@@ -284,11 +283,11 @@ class GitHubService {
         if (response.status === 403) {
           throw new Error('Rate limit exceeded. Please try again later.')
         }
-        const errorData = await response.json().catch(() => ({}))
-        throw new Error(`GitHub API error: ${response.status} - ${errorData.message || 'Unknown error'}`)
+        const errorData = await response.json().catch(() => ({})) as { message?: string }
+        throw new Error(`GitHub API error: ${response.status} - ${errorData.message ?? 'Unknown error'}`)
       }
 
-      const searchResult = await response.json()
+      const searchResult = await response.json() as { items?: unknown[] }
       console.log('Search result:', searchResult)
 
       if (!searchResult.items || searchResult.items.length === 0) {
@@ -297,9 +296,10 @@ class GitHubService {
 
       // Get unique gist IDs from search results
       const gistIds = new Set<string>()
-      searchResult.items.forEach((item: any) => {
-        if (item.repository && item.repository.name && item.repository.name.match(/^gist:/)) {
-          const gistId = item.repository.name.replace('gist:', '')
+      searchResult.items.forEach((item: unknown) => {
+        const itemObj = item as { repository?: { name?: string } }
+        if (itemObj.repository?.name?.match(/^gist:/)) {
+          const gistId = itemObj.repository.name.replace('gist:', '')
           gistIds.add(gistId)
         }
       })
@@ -322,7 +322,7 @@ class GitHubService {
     }
   }
 
-  async getAuthenticatedUser(): Promise<any> {
+  async getAuthenticatedUser(): Promise<GitHubUser> {
     try {
       const headers = firebaseAuthService.getGitHubApiHeaders()
       console.log('API Headers:', headers)
@@ -340,7 +340,7 @@ class GitHubService {
         throw new Error(`GitHub API error: ${response.status} - ${errorText}`)
       }
 
-      const userData = await response.json()
+      const userData = await response.json() as GitHubUser
       console.log('GitHub API user data:', userData)
       return userData
     } catch (error) {

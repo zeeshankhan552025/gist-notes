@@ -1,6 +1,6 @@
-import { Avatar, Button, Table, Skeleton } from "antd"
+import { Avatar, Button, Skeleton, Table } from "antd"
 import type { ColumnsType } from "antd/es/table"
-import { EyeOutlined, EditOutlined } from "@ant-design/icons"
+import { EditOutlined, EyeOutlined } from "@ant-design/icons"
 import { useNavigate } from "react-router-dom"
 import type { GitHubGist } from "../services/github-api"
 
@@ -27,7 +27,7 @@ export function ProfileGistsTable({ gists, loading = false }: ProfileGistsTableP
   // Handle row click to navigate to detail page
   const handleRowClick = (record: Row) => {
     if (!loading && record.key && !record.key.startsWith('skeleton-')) {
-      navigate(`/gist/${record.key}`);
+      void navigate(`/gist/${record.key}`);
     }
   };
 
@@ -58,18 +58,18 @@ export function ProfileGistsTable({ gists, loading = false }: ProfileGistsTableP
 
   // Convert GitHubGist to table row format
   const rows: Row[] = gists.map((gist) => {
-    const fileName = Object.keys(gist.files)[0] || 'untitled'
+    const fileName = Object.keys(gist.files)[0] ?? 'untitled'
     const file = Object.values(gist.files)[0]
-    const language = file?.language || 'Text'
+    const language = file?.language ?? 'Text'
     
     return {
       key: gist.id,
       name: gist.owner.login,
       gistName: fileName,
-      description: gist.description || 'No description',
+      description: gist.description ?? 'No description',
       updated: gist.updated_at,
       avatarUrl: gist.owner.avatar_url,
-      language: language,
+      language,
       gistUrl: gist.html_url,
       isPublic: gist.public,
     }
@@ -191,7 +191,7 @@ export function ProfileGistsTable({ gists, loading = false }: ProfileGistsTableP
                 aria-label="View gist"
                 onClick={(e) => {
                   e.stopPropagation()
-                  navigate(`/gist/${record.key}`)
+                  void navigate(`/gist/${record.key}`)
                 }}
               />
               <Button 

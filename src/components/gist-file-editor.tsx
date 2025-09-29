@@ -26,7 +26,7 @@ export default function GistFileEditor({ file, onChange, onRemove, disabled = fa
   }
 
   const handleContentChange = (value: string | undefined) => {
-    const newContent = value || ""
+    const newContent = value ?? ""
     setContent(newContent)
     onChange({ ...file, content: newContent })
   }

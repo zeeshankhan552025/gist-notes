@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react"
+import { useEffect, useState } from "react"
 import { message } from "antd"
 import { Header } from "../../layout/header"
 import { PublicGistsTable } from "../../components/public-gists-table"
@@ -6,6 +6,12 @@ import { PublicGistsGrid } from "../../components/public-gists-grid"
 import { Pagination } from "../../components/pagination"
 import { githubApiService, type GitHubGist } from "../../services/github-api"
 import "./landing.scss"
+
+interface SearchResult {
+  cleared?: boolean;
+  multiple?: boolean;
+  results?: GitHubGist[];
+}
 
 type ViewMode = 'list' | 'grid'
 
@@ -34,7 +40,7 @@ export default function LandingPage() {
       // Estimate total pages based on current data
       // Since we don't know exact total, we'll show at least current + 1 if hasNext
       setTotalPages(response.hasNext ? page + 1 : page)
-    } catch (error: unknown) {
+    } catch {
       message.error('Failed to fetch gists. Please try again.')
     } finally {
       setLoading(false)
@@ -42,11 +48,12 @@ export default function LandingPage() {
   }
 
   useEffect(() => {
-    fetchGists(1)
+    void fetchGists(1)
   }, [])
 
-  const handleSearchResult = (result: any) => {
-    if (result.cleared) {
+  const handleSearchResult = (result: SearchResult | GitHubGist) => {
+    const typedResult = result as SearchResult;
+    if (typedResult.cleared) {
       // Search input was cleared, reset all search state
       setSearchResult(null)
       setSearchResults([])
@@ -56,13 +63,13 @@ export default function LandingPage() {
     
     setHasSearched(true) // Mark that a search was performed
     
-    if (result.multiple && result.results) {
+    if (typedResult.multiple && typedResult.results) {
       // Multiple results from content search (including empty results)
-      setSearchResults(result.results)
+      setSearchResults(typedResult.results)
       setSearchResult(null)
-    } else if (result && !result.multiple) {
+    } else if (result && !typedResult.multiple) {
       // Single result from ID search
-      setSearchResult(result)
+      setSearchResult(result as GitHubGist)
       setSearchResults([])
     } else {
       // No results or invalid result
@@ -78,7 +85,7 @@ export default function LandingPage() {
   }
 
   const handlePageChange = (page: number) => {
-    fetchGists(page)
+    void fetchGists(page)
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 

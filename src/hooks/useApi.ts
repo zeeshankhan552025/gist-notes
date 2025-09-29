@@ -21,7 +21,7 @@ export interface ApiClient {
 }
 
 export function createApi(baseURL?: string): ApiClient {
-  const request: ApiClient['request'] = async (url, options = {}) => {
+  const request = async <T = unknown>(url: string, options: ApiOptions = {}): Promise<T> => {
     const { method = 'GET', headers = {}, body, auth = false } = options
 
     const finalHeaders: Record<string, string> = {
@@ -36,7 +36,7 @@ export function createApi(baseURL?: string): ApiClient {
     if (auth) {
       const authHeaders = firebaseAuthService.getGitHubApiHeaders()
       if (authHeaders.Authorization) {
-        finalHeaders['Authorization'] = authHeaders.Authorization
+        finalHeaders.Authorization = authHeaders.Authorization
       }
     }
 
@@ -59,15 +59,15 @@ export function createApi(baseURL?: string): ApiClient {
       throw new Error(message)
     }
 
-    const contentType = res.headers.get('content-type') || ''
+    const contentType = res.headers.get('content-type') ?? ''
     if (!contentType.includes('application/json')) {
-      return undefined
+      return undefined as T
     }
-    return res.json() as Promise<any>
+    return res.json() as Promise<T>
   }
 
   return {
-    request: request,
+    request,
     requestRaw: async (url, options = {}) => {
       const { method = 'GET', headers = {}, body, auth = false } = options
 
@@ -83,7 +83,7 @@ export function createApi(baseURL?: string): ApiClient {
       if (auth) {
         const authHeaders = firebaseAuthService.getGitHubApiHeaders()
         if (authHeaders.Authorization) {
-          finalHeaders['Authorization'] = authHeaders.Authorization
+          finalHeaders.Authorization = authHeaders.Authorization
         }
       }
 

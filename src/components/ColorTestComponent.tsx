@@ -1,5 +1,5 @@
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
-import { tomorrow, prism, vs } from 'react-syntax-highlighter/dist/esm/styles/prism';
+import { prism, tomorrow, vs } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import './color-test-component.scss'
 
 const ColorTestComponent = () => {

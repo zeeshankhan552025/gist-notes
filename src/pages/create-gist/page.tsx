@@ -91,7 +91,7 @@ export default function CreateGistPage() {
       
       // Wait a moment to show the success message, then navigate
       setTimeout(() => {
-        navigate(`/gist/${createdGist.id}`)
+        void navigate(`/gist/${createdGist.id}`)
       }, 2000)
       
     } catch (error) {
@@ -124,7 +124,7 @@ export default function CreateGistPage() {
       <main className="gist-create" role="main" aria-labelledby="create-gist-title">
     
 
-      <form className="gist-create__form" onSubmit={handleSubmit}>
+      <form className="gist-create__form" onSubmit={(e) => void handleSubmit(e)}>
         {error && (
           <div className="gist-create__message gist-create__message--error">
             {error}

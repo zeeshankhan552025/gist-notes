@@ -34,26 +34,30 @@ export function ProfileSidebar({
           <img 
             src={avatarUrl} 
             alt={`${name}'s avatar`}
-            style={{ 
-              width: '100%', 
-              height: '100%', 
-              borderRadius: '50%',
-              objectFit: 'cover'
+            onError={(e) => {
+              console.log('Avatar image failed to load:', avatarUrl);
+              // Hide the image and show initials instead
+              e.currentTarget.style.display = 'none';
+              const fallback = e.currentTarget.parentElement?.querySelector('.avatar-fallback');
+              if (fallback) {
+                (fallback as HTMLElement).style.display = 'block';
+              }
+            }}
+            onLoad={() => {
+              console.log('Avatar image loaded successfully:', avatarUrl);
             }}
           />
-        ) : (
-          <span style={{ 
-            display: 'flex', 
-            alignItems: 'center', 
-            justifyContent: 'center',
-            width: '100%',
-            height: '100%',
-            fontSize: '1.5rem',
-            fontWeight: 'bold'
-          }}>
-            {initials}
-          </span>
-        )}
+        ) : null}
+        
+        {/* Fallback initials */}
+        <span 
+          className="avatar-fallback"
+          style={{ 
+            display: avatarUrl ? 'none' : 'block'
+          }}
+        >
+          {initials}
+        </span>
       </div>
 
       <div className="profile-card__name" aria-label="Full name">

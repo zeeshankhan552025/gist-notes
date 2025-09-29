@@ -1,4 +1,4 @@
-import { signInWithPopup, signOut, GithubAuthProvider, onAuthStateChanged } from "firebase/auth";
+import { GithubAuthProvider, onAuthStateChanged, signInWithPopup, signOut } from "firebase/auth";
 import type { User } from "firebase/auth";
 import { auth } from "../config/firebase";
 
@@ -30,40 +30,31 @@ export class FirebaseAuthService {
    * Login with GitHub using Firebase Auth
    */
   async loginWithGithub(): Promise<{ user: AuthUser; token: string } | null> {
-    try {
-      const result = await signInWithPopup(auth, this.provider);
-      
-      // Get the GitHub access token
-      const credential = GithubAuthProvider.credentialFromResult(result);
-      const token = credential?.accessToken;
-      
-      if (!token) {
-        throw new Error("Failed to get GitHub access token from credential");
-      }
-
-      // Store token in localStorage
-      this.storeToken(token);
-
-      // Create AuthUser object
-      const authUser: AuthUser = {
-        uid: result.user.uid,
-        email: result.user.email,
-        displayName: result.user.displayName,
-        photoURL: result.user.photoURL,
-        githubToken: token
-      };
-      // Store user info in localStorage as well
-      this.storeUserInfo(authUser);
-
-      return { user: authUser, token };
-
-    } catch (error: any) {
-
-        // The AuthCredential type that was used.
-       GithubAuthProvider.credentialFromError(error);
-      
-      throw error;
+    const result = await signInWithPopup(auth, this.provider);
+    
+    // Get the GitHub access token
+    const credential = GithubAuthProvider.credentialFromResult(result);
+    const token = credential?.accessToken;
+    
+    if (!token) {
+      throw new Error("Failed to get GitHub access token from credential");
     }
+
+    // Store token in localStorage
+    this.storeToken(token);
+
+    // Create AuthUser object
+    const authUser: AuthUser = {
+      uid: result.user.uid,
+      email: result.user.email,
+      displayName: result.user.displayName,
+      photoURL: result.user.photoURL,
+      githubToken: token
+    };
+    // Store user info in localStorage as well
+    this.storeUserInfo(authUser);
+
+    return { user: authUser, token };
   }
 
 
@@ -71,12 +62,8 @@ export class FirebaseAuthService {
    * Logout the current user
    */
   async logout(): Promise<void> {
-    try {
-      await signOut(auth);
-      this.clearStoredData();
-    } catch (error) {
-      throw error;
-    }
+    await signOut(auth);
+    this.clearStoredData();
   }
 
 
@@ -120,7 +107,13 @@ export class FirebaseAuthService {
    */
   getStoredUserInfo(): AuthUser | null {
     const userInfo = localStorage.getItem("user_info");
-    return userInfo ? JSON.parse(userInfo) : null;
+    if (!userInfo) return null;
+    
+    try {
+      return JSON.parse(userInfo) as AuthUser;
+    } catch {
+      return null;
+    }
   }
 
   /**

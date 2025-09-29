@@ -56,14 +56,14 @@ export function ProfileGistList({ items }: { items: GistItem[] }) {
       'md': 'markdown',
       'dockerfile': 'dockerfile'
     }
-    return languageMap[extension || ''] || 'text'
+    return languageMap[extension ?? ''] ?? 'text'
   }
 
   return (
     <div className="profile-gist-grid">
       {items.map((g) => {
         const handleCardClick = () => {
-          navigate(`/gist/${g.id}`);
+          void navigate(`/gist/${g.id}`);
         };
 
         const handleViewClick = (e: React.MouseEvent) => {
@@ -72,11 +72,11 @@ export function ProfileGistList({ items }: { items: GistItem[] }) {
           window.open(`https://gist.github.com/${g.id}`, '_blank', 'noopener,noreferrer');
         };
 
-        const truncateFilename = (filename: string, maxLength: number = 20): string => {
+        const truncateFilename = (filename: string, maxLength = 20): string => {
           if (filename.length <= maxLength) {
             return filename
           }
-          return filename.substring(0, maxLength - 3) + '...';
+          return `${filename.substring(0, maxLength - 3)  }...`;
         };
 
         const truncatedFilename = truncateFilename(g.fileName);
@@ -106,7 +106,7 @@ export function ProfileGistList({ items }: { items: GistItem[] }) {
 
             <div className="profile-gist-card__code">
               <SyntaxHighlighter
-                language={g.language || getLanguageFromFilename(g.fileName)}
+                language={g.language ?? getLanguageFromFilename(g.fileName)}
                 style={tomorrow}
                 showLineNumbers={true}
                 customStyle={{

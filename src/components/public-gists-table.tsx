@@ -1,4 +1,4 @@
-import { Avatar, Button, Table, Skeleton } from "antd"
+import { Avatar, Button, Skeleton, Table } from "antd"
 import type { ColumnsType } from "antd/es/table"
 import { ForkOutlined, StarOutlined } from "@ant-design/icons"
 import { useNavigate } from "react-router-dom"
@@ -28,7 +28,7 @@ export function PublicGistsTable({ gists, loading = false }: PublicGistsTablePro
   // Handle row click to navigate to detail page
   const handleRowClick = (record: Row) => {
     if (!loading && record.key && !record.key.startsWith('skeleton-')) {
-      navigate(`/gist/${record.key}`);
+      void navigate(`/gist/${record.key}`);
     }
   };
   // Helper function to format relative dates
@@ -57,7 +57,7 @@ export function PublicGistsTable({ gists, loading = false }: PublicGistsTablePro
   };
 
   // Generate skeleton rows for loading state
-  const generateSkeletonRows = (count: number = 5): Row[] => {
+  const generateSkeletonRows = (count = 5): Row[] => {
     return Array.from({ length: count }, (_, index) => ({
       key: `skeleton-${index}`,
       name: '',
@@ -76,11 +76,11 @@ export function PublicGistsTable({ gists, loading = false }: PublicGistsTablePro
     return {
       key: gist.id,
       name: gist.owner.login,
-      gistName: Object.keys(gist.files)[0] || 'untitled',
-      description: gist.description || 'No description',
+      gistName: Object.keys(gist.files)[0] ?? 'untitled',
+      description: gist.description ?? 'No description',
       updated: gist.updated_at, // Keep original ISO string for relative formatting
       avatarUrl: gist.owner.avatar_url,
-      language: firstFile?.language || 'Text',
+      language: firstFile?.language ?? 'Text',
       gistUrl: gist.html_url
     }
   })

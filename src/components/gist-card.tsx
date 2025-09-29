@@ -37,7 +37,7 @@ export default function GistCard({ data, loading = false }: GistCardProps) {
   // Handle card click to navigate to detail page
   const handleCardClick = () => {
     if (!loading && data.id) {
-      navigate(`/gist/${data.id}`);
+      void navigate(`/gist/${data.id}`);
     }
   };
 
@@ -77,14 +77,14 @@ export default function GistCard({ data, loading = false }: GistCardProps) {
       'md': 'markdown',
       'dockerfile': 'dockerfile'
     }
-    return languageMap[extension || ''] || 'text'
+    return languageMap[extension ?? ''] ?? 'text'
   }
 
-  const truncateFilename = (filename: string, maxLength: number = 20): string => {
+  const truncateFilename = (filename: string, maxLength = 20): string => {
     if (filename.length <= maxLength) {
       return filename
     }
-    return filename.substring(0, maxLength - 3) + '...'
+    return `${filename.substring(0, maxLength - 3)}...`
   }
 
   const filename = data?.viewLabel ?? "vercel_package.json"
@@ -161,7 +161,7 @@ export default function GistCard({ data, loading = false }: GistCardProps) {
       
       <div className="gist-card__code">
         <SyntaxHighlighter
-          language={data.language || getLanguageFromFilename(data.gistName)}
+          language={data.language ?? getLanguageFromFilename(data.gistName)}
           style={tomorrow}
           showLineNumbers={true}
         >
@@ -176,7 +176,7 @@ export default function GistCard({ data, loading = false }: GistCardProps) {
             size={32}
             src={data.avatarUrl}
             className="gist-card__avatar"
-            data-has-avatar={Boolean(!!data.avatarUrl)}
+            data-has-avatar={Boolean(data.avatarUrl)}
             aria-label={`${data.authorName} avatar`}
           >
             {initials}

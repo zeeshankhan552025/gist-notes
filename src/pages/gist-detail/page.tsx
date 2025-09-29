@@ -1,7 +1,7 @@
 import { GitFork, Star } from "lucide-react"
-import { useParams, useNavigate } from "react-router-dom"
-import { useState, useEffect } from "react"
-import { Skeleton, message } from "antd"
+import { useNavigate, useParams } from "react-router-dom"
+import { useEffect, useState } from "react"
+import { message, Skeleton } from "antd"
 import { Header } from "../../layout/header"
 import { githubApiService, type GitHubGist } from "../../services/github-api"
 import "./gist-detail.scss"
@@ -38,7 +38,7 @@ export default function GistDetailPage() {
             setActiveFile(firstFileName)
           }
         }
-      } catch (err: unknown) {
+      } catch {
         setError('Failed to load gist')
         message.error('Failed to load gist details')
       } finally {
@@ -46,7 +46,7 @@ export default function GistDetailPage() {
       }
     }
 
-    fetchGist()
+    void fetchGist()
   }, [gistId])
 
   // Helper function to get initials
@@ -106,13 +106,13 @@ export default function GistDetailPage() {
       <main className="gist-detail" aria-labelledby="error-heading">
         <div style={{ textAlign: 'center', padding: '4rem 2rem' }}>
           <h1 id="error-heading" style={{ fontSize: '2rem', marginBottom: '1rem', color: '#ef4444' }}>
-            {error || 'Gist not found'}
+            {error ?? 'Gist not found'}
           </h1>
           <p style={{ fontSize: '1.1rem', color: '#6b7280', marginBottom: '2rem' }}>
             The gist you're looking for doesn't exist or couldn't be loaded.
           </p>
           <button 
-            onClick={() => navigate('/')}
+            onClick={() => void navigate('/')}
             style={{ 
               padding: '0.75rem 1.5rem', 
               fontSize: '1rem', 
@@ -131,7 +131,7 @@ export default function GistDetailPage() {
   }
 
   // Get all files and the currently active file
-  const files = gist.files
+  const {files} = gist
   const fileNames = Object.keys(files)
   
   // Debug logging
@@ -140,10 +140,10 @@ export default function GistDetailPage() {
   console.log('Active file:', activeFile)
   
   const currentFile = activeFile && files[activeFile] ? files[activeFile] : null
-  const fileName = currentFile?.filename || 'untitled'
-  const fileContent = currentFile?.content || '// File content not available'
+  const fileName = currentFile?.filename ?? 'untitled'
+  const fileContent = currentFile?.content ?? '// File content not available'
   const language = (() => {
-    const lang = currentFile?.language?.toLowerCase() || 'text'
+    const lang = currentFile?.language?.toLowerCase() ?? 'text'
     // Map to supported languages or return undefined for auto-detection
     const supportedLanguages = ['json', 'javascript', 'typescript', 'markdown']
     return supportedLanguages.includes(lang) ? lang as 'json' | 'javascript' | 'typescript' | 'markdown' : undefined
@@ -169,7 +169,7 @@ export default function GistDetailPage() {
                 <span className="gist-detail__gist">{fileName}</span>
               </h1>
               <div className="gist-detail__meta">{formatDate(gist.created_at)}</div>
-              <p className="gist-detail__desc">{gist.description || 'No description provided'}</p>
+              <p className="gist-detail__desc">{gist.description ?? 'No description provided'}</p>
             </div>
           </div>
 

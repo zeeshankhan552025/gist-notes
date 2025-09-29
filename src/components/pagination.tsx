@@ -1,6 +1,6 @@
 import { Input } from "antd"
 import { LeftOutlined, RightOutlined } from "@ant-design/icons"
-import { useState, useEffect } from "react"
+import { useEffect, useState } from "react"
 import "./pagination.scss"
 
 export interface PaginationProps {

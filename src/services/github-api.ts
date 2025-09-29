@@ -1,5 +1,6 @@
 import { firebaseAuthService } from './firebase-auth'
 import { createApi } from '../hooks/useApi'
+import type { GitHubUser } from '../types/github.types'
 
 export interface GitHubGist {
   id: string
@@ -8,16 +9,14 @@ export interface GitHubGist {
   public: boolean
   created_at: string
   updated_at: string
-  files: {
-    [filename: string]: {
+  files: Record<string, {
       filename: string
       type: string
       language: string | null
       raw_url: string
       size: number
       content?: string
-    }
-  }
+    }>
   owner: {
     login: string
     id: number
@@ -41,10 +40,10 @@ class GitHubApiService {
   private baseURL = 'https://api.github.com'
   private api = createApi(this.baseURL)
 
-  async fetchPublicGists(page: number = 1, perPage: number = 10): Promise<GitHubGistResponse> {
+  async fetchPublicGists(page = 1, perPage = 10): Promise<GitHubGistResponse> {
     const response = await this.api.requestRaw(`/gists/public?page=${page}&per_page=${perPage}`)
     if (!response.ok) throw new Error(`GitHub API error: ${response.status}`)
-    const gists: GitHubGist[] = await response.json()
+    const gists = await response.json() as GitHubGist[]
     const linkHeader = response.headers.get('link')
     const hasNext = linkHeader ? linkHeader.includes('rel="next"') : false
     const hasPrev = page > 1
@@ -60,20 +59,20 @@ class GitHubApiService {
       const errorText = await response.text()
       throw new Error(`GitHub API error: ${response.status} - ${errorText}`)
     }
-    return response.json()
+    return response.json() as Promise<GitHubGist>
   }
 
-  async fetchUserGists(username: string, page: number = 1, perPage: number = 10): Promise<GitHubGistResponse> {
+  async fetchUserGists(username: string, page = 1, perPage = 10): Promise<GitHubGistResponse> {
     const response = await this.api.requestRaw(`/users/${username}/gists?page=${page}&per_page=${perPage}`)
     if (!response.ok) throw new Error(`GitHub API error: ${response.status}`)
-    const gists: GitHubGist[] = await response.json()
+    const gists = await response.json() as GitHubGist[]
     const linkHeader = response.headers.get('link')
     const hasNext = linkHeader ? linkHeader.includes('rel="next"') : false
     const hasPrev = page > 1
     return { gists, hasNext, hasPrev, currentPage: page }
   }
 
-  async fetchAuthenticatedUserGists(page: number = 1, perPage: number = 5): Promise<GitHubGistResponse> {
+  async fetchAuthenticatedUserGists(page = 1, perPage = 5): Promise<GitHubGistResponse> {
     const headers = firebaseAuthService.getGitHubApiHeaders()
     if (!headers.Authorization) throw new Error('No authentication token available')
     const response = await this.api.requestRaw(`/gists?page=${page}&per_page=${perPage}`, { headers, auth: true })
@@ -81,7 +80,7 @@ class GitHubApiService {
       const errorText = await response.text()
       throw new Error(`GitHub API error: ${response.status} - ${errorText}`)
     }
-    const gists: GitHubGist[] = await response.json()
+    const gists = await response.json() as GitHubGist[]
     const linkHeader = response.headers.get('link')
     const hasNext = linkHeader ? linkHeader.includes('rel="next"') : false
     const hasPrev = page > 1
@@ -115,15 +114,16 @@ class GitHubApiService {
     if (!response.ok) {
       if (response.status === 401) throw new Error('Authentication required. Please log in with GitHub.')
       if (response.status === 403) throw new Error('Rate limit exceeded. Please try again later.')
-      const errorData = await response.json().catch(() => ({}))
-      throw new Error(`GitHub API error: ${response.status} - ${errorData.message || 'Unknown error'}`)
+      const errorData = await response.json().catch(() => ({})) as { message?: string }
+      throw new Error(`GitHub API error: ${response.status} - ${errorData.message ?? 'Unknown error'}`)
     }
-    const searchResult = await response.json()
+    const searchResult = await response.json() as { items?: unknown[] }
     if (!searchResult.items || searchResult.items.length === 0) return []
     const gistIds = new Set<string>()
-    searchResult.items.forEach((item: any) => {
-      if (item.repository && item.repository.name && item.repository.name.match(/^gist:/)) {
-        const gistId = item.repository.name.replace('gist:', '')
+    searchResult.items.forEach((item: unknown) => {
+      const itemObj = item as { repository?: { name?: string } }
+      if (itemObj.repository?.name?.match(/^gist:/)) {
+        const gistId = itemObj.repository.name.replace('gist:', '')
         gistIds.add(gistId)
       }
     })
@@ -173,16 +173,16 @@ class GitHubApiService {
       // Filter gists by name/description
       const queryLower = query.toLowerCase()
       const matchingGists = allGists.filter(gist => {
-        const description = (gist.description || '').toLowerCase()
-        const fileName = Object.keys(gist.files)[0]?.toLowerCase() || ''
+        const description = (gist.description ?? '').toLowerCase()
+        const fileName = Object.keys(gist.files)[0]?.toLowerCase() ?? ''
         
         return description.includes(queryLower) || fileName.includes(queryLower)
       })
       
       // Sort by relevance (exact matches first, then partial matches)
       return matchingGists.sort((a, b) => {
-        const aDesc = (a.description || '').toLowerCase()
-        const bDesc = (b.description || '').toLowerCase()
+        const aDesc = (a.description ?? '').toLowerCase()
+        const bDesc = (b.description ?? '').toLowerCase()
         
         // Exact description match gets highest priority
         if (aDesc === queryLower && bDesc !== queryLower) return -1
@@ -202,10 +202,10 @@ class GitHubApiService {
     }
   }
 
-  async getAuthenticatedUser(): Promise<any> {
+  async getAuthenticatedUser(): Promise<GitHubUser> {
     const headers = firebaseAuthService.getGitHubApiHeaders()
     if (!headers.Authorization) throw new Error('No authentication token available')
-    return this.api.get<any>(`/user`, { headers, auth: true })
+    return this.api.get<GitHubUser>(`/user`, { headers, auth: true })
   }
 }
 
