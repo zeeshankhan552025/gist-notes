@@ -1,6 +1,9 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useContext, useEffect } from 'react';
 import type { User } from 'firebase/auth';
 import { firebaseAuthService } from '../services/firebase-auth';
+import { useAppSelector, useAppDispatch } from '../store/hooks';
+import { setCurrentUser, setUserInfo, setGithubToken, setLoading } from '../store/slices/authSlice';
+import { loginWithGithub, logoutUser, fetchAuthenticatedUser } from '../store/thunks';
 import type { AuthUser } from '../services/firebase-auth';
 
 interface AuthContextType {
@@ -28,59 +31,49 @@ interface AuthProviderProps {
 }
 
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
-  const [currentUser, setCurrentUser] = useState<User | null>(null);
-  const [userInfo, setUserInfo] = useState<AuthUser | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [githubToken, setGithubToken] = useState<string | null>(null);
+  const dispatch = useAppDispatch();
+  const {
+    currentUser,
+    userInfo,
+    loading,
+    isAuthenticated,
+    githubToken,
+    githubUserData
+  } = useAppSelector((state) => state.auth);
 
   useEffect(() => {
     // Listen for authentication state changes
     const unsubscribe = firebaseAuthService.onAuthStateChange((user) => {
-      setCurrentUser(user);
-      setLoading(false);
-      
+      dispatch(setCurrentUser(user));
+      dispatch(setLoading(false));
+
       if (user) {
         // User is signed in, get stored user info and token
         const storedUserInfo = firebaseAuthService.getStoredUserInfo();
         const storedToken = firebaseAuthService.getStoredToken();
-        
-        setUserInfo(storedUserInfo);
-        setGithubToken(storedToken);
+
+        dispatch(setUserInfo(storedUserInfo));
+        dispatch(setGithubToken(storedToken));
+
+        // Fetch GitHub user data if we have a token but no user data
+        if (storedToken && !githubUserData) {
+          dispatch(fetchAuthenticatedUser());
+        }
       } else {
-        // User is signed out
-        setUserInfo(null);
-        setGithubToken(null);
+        dispatch(setLoading(false));
       }
     });
 
     return unsubscribe;
-  }, []);
+  }, [dispatch, githubUserData]);
 
-  const login = async (): Promise<void> => {
-    try {
-      const result = await firebaseAuthService.loginWithGithub();
-      if (result) {
-        setUserInfo(result.user);
-        setGithubToken(result.token);
-      }
-    } catch (error) {
-      console.error('Login failed:', error);
-      throw error;
-    }
+  const login = async () => {
+    await dispatch(loginWithGithub()).unwrap();
   };
 
-  const logout = async (): Promise<void> => {
-    try {
-      await firebaseAuthService.logout();
-      setUserInfo(null);
-      setGithubToken(null);
-    } catch (error) {
-      console.error('Logout failed:', error);
-      throw error;
-    }
+  const logout = async () => {
+    await dispatch(logoutUser()).unwrap();
   };
-
-  const isAuthenticated = !!currentUser && !!githubToken;
 
   const value: AuthContextType = {
     currentUser,
@@ -94,7 +87,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   return (
     <AuthContext.Provider value={value}>
-      {!loading && children}
+      {children}
     </AuthContext.Provider>
   );
 };
