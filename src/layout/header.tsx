@@ -108,9 +108,23 @@ export function Header({ onSearchResult }: HeaderProps) {
           }
         }
       } else if (isAuthenticated) {
-        // It's search terms, search by content (requires authentication)
+        // It's search terms, search by content and name (requires authentication)
         try {
-          results = await githubApiService.searchGists(input)
+          // Search by both content and name/description
+          const [contentResults, nameResults] = await Promise.all([
+            githubApiService.searchGists(input).catch(() => []),
+            githubApiService.searchGistsByName(input).catch(() => [])
+          ])
+          
+          // Combine results, avoiding duplicates
+          const allResults = [...nameResults]
+          contentResults.forEach(contentGist => {
+            if (!allResults.some(nameGist => nameGist.id === contentGist.id)) {
+              allResults.push(contentGist)
+            }
+          })
+          
+          results = allResults.slice(0, 10) // Limit to 10 total results
         } catch (error: unknown) {
           if (error instanceof Error && error.message.includes('403')) {
             message.error('Rate limit exceeded. Please try again later.')
@@ -120,7 +134,7 @@ export function Header({ onSearchResult }: HeaderProps) {
         }
       } else {
         // Not authenticated, suggest login for content search
-        message.warning('Please log in with GitHub to search gist content, or paste a gist URL/ID for direct access.')
+        message.warning('Please log in with GitHub to search gist names and content, or paste a gist URL/ID for direct access.')
         return
       }
       
@@ -147,8 +161,14 @@ export function Header({ onSearchResult }: HeaderProps) {
         }
         message.error('No gists found. Try different search terms.')
       }
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        message.error(error.message)
+      } else {
+        message.error('Search failed. Please try again.')
+      }
     } finally {
-      // no-op
+      setSearching(false)
     }
   }
 
@@ -226,8 +246,8 @@ export function Header({ onSearchResult }: HeaderProps) {
             <Input
               allowClear
               placeholder={isAuthenticated 
-                ? "Search gists by content or paste Gist URL/ID... (Try: 'fetch' or test with a real gist ID)" 
-                : "Login to search content, or paste Gist URL/ID... (Try pasting a gist URL)"}
+                ? "Search gists by name, content or paste Gist URL/ID... (Try: 'react' or test with a gist ID)" 
+                : "Login to search by name/content, or paste Gist URL/ID... (Try pasting a gist URL)"}
               prefix={<SearchOutlined />}
               suffix={
                 <Button 

@@ -141,6 +141,67 @@ class GitHubApiService {
     return gists.filter((g): g is GitHubGist => g !== null)
   }
 
+  async searchGistsByName(query: string): Promise<GitHubGist[]> {
+    const headers = firebaseAuthService.getGitHubApiHeaders()
+    const useAuth = headers.Authorization !== ''
+    
+    try {
+      // First, get the user's own gists to search through
+      let allGists: GitHubGist[] = []
+      
+      if (useAuth) {
+        // Search authenticated user's gists
+        let page = 1
+        let hasMore = true
+        
+        while (hasMore && page <= 5) { // Limit to 5 pages to avoid too many API calls
+          const response = await this.fetchAuthenticatedUserGists(page, 30)
+          allGists = [...allGists, ...response.gists]
+          hasMore = response.hasNext
+          page++
+        }
+      }
+      
+      // Also search public gists (limited sample)
+      try {
+        const publicResponse = await this.fetchPublicGists(1, 30)
+        allGists = [...allGists, ...publicResponse.gists]
+      } catch {
+        // Ignore public gist errors, just continue with user gists
+      }
+      
+      // Filter gists by name/description
+      const queryLower = query.toLowerCase()
+      const matchingGists = allGists.filter(gist => {
+        const description = (gist.description || '').toLowerCase()
+        const fileName = Object.keys(gist.files)[0]?.toLowerCase() || ''
+        
+        return description.includes(queryLower) || fileName.includes(queryLower)
+      })
+      
+      // Sort by relevance (exact matches first, then partial matches)
+      return matchingGists.sort((a, b) => {
+        const aDesc = (a.description || '').toLowerCase()
+        const bDesc = (b.description || '').toLowerCase()
+        
+        // Exact description match gets highest priority
+        if (aDesc === queryLower && bDesc !== queryLower) return -1
+        if (bDesc === queryLower && aDesc !== queryLower) return 1
+        
+        // Description starts with query gets second priority
+        if (aDesc.startsWith(queryLower) && !bDesc.startsWith(queryLower)) return -1
+        if (bDesc.startsWith(queryLower) && !aDesc.startsWith(queryLower)) return 1
+        
+        // Most recent first for same relevance
+        return new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime()
+      }).slice(0, 10) // Limit to 10 results
+      
+    } catch (error: unknown) {
+      console.error('Error searching gists by name:', error)
+      return []
+    }
+  }
+
   async getAuthenticatedUser(): Promise<any> {
     const headers = firebaseAuthService.getGitHubApiHeaders()
     if (!headers.Authorization) throw new Error('No authentication token available')
