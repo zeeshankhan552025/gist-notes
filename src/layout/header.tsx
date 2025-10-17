@@ -202,11 +202,6 @@ export function Header({ onSearchResult }: HeaderProps) {
       label: 'Profile',
     },
     {
-      key: 'settings',
-      icon: <SettingOutlined />,
-      label: 'Settings',
-    },
-    {
       type: 'divider',
     },
     {

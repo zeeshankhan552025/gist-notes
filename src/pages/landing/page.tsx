@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react"
 import { message } from "antd"
 import { Header } from "../../layout/header"
-import { PublicGistsTable } from "../../components/public-gists-table"
-import { PublicGistsGrid } from "../../components/public-gists-grid"
-import { Pagination } from "../../components/pagination"
+import { PublicGistsTable } from "../../components/PublicGistsTable/public-gists-table"
+import { PublicGistsGrid } from "../../components/PublicGistsGrid/public-gists-grid"
+import { Pagination } from "../../components/Pagination/pagination"
 import { githubApiService, type GitHubGist } from "../../services/github-api"
 import "./landing.scss"
 

@@ -1,0 +1,48 @@
+.create-gist-form {
+  max-width: 800px;
+  margin: 0 auto;
+
+  .file-card {
+    margin-bottom: 16px;
+    
+    .ant-card-head {
+      border-bottom: 1px solid #f0f0f0;
+    }
+  }
+
+  .code-textarea {
+    font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+    font-size: 13px;
+    line-height: 1.4;
+  }
+
+  .add-file-btn {
+    margin-bottom: 24px;
+  }
+
+  .form-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+  }
+}
+
+@media (max-width: 768px) {
+  .create-gist-form {
+    margin: 0 16px;
+    
+    .file-card {
+      .ant-card-head-title {
+        font-size: 14px;
+      }
+    }
+    
+    .form-actions {
+      justify-content: stretch;
+      
+      .ant-btn {
+        flex: 1;
+      }
+    }
+  }
+}

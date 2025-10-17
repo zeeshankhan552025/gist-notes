@@ -3,6 +3,8 @@ import { Avatar, Skeleton, Tooltip } from "antd"
 import { useNavigate } from "react-router-dom"
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter'
 import { tomorrow } from 'react-syntax-highlighter/dist/esm/styles/prism'
+import { getLanguageFromFilename } from "../../utils/language-utils"
+import { GistActions } from "../GistActions/GistActions"
 
 export type GistCardData = {
   id: string
@@ -48,37 +50,6 @@ export default function GistCard({ data, loading = false }: GistCardProps) {
       window.open(data.gistUrl, '_blank', 'noopener,noreferrer')
     }
   };
-
-  const getLanguageFromFilename = (filename: string): string => {
-    const extension = filename.split('.').pop()?.toLowerCase()
-    const languageMap: Record<string, string> = {
-      'js': 'javascript',
-      'jsx': 'jsx',
-      'ts': 'typescript',
-      'tsx': 'tsx',
-      'py': 'python',
-      'java': 'java',
-      'c': 'c',
-      'cpp': 'cpp',
-      'cs': 'csharp',
-      'php': 'php',
-      'rb': 'ruby',
-      'go': 'go',
-      'rs': 'rust',
-      'sh': 'bash',
-      'sql': 'sql',
-      'html': 'html',
-      'css': 'css',
-      'scss': 'scss',
-      'json': 'json',
-      'xml': 'xml',
-      'yml': 'yaml',
-      'yaml': 'yaml',
-      'md': 'markdown',
-      'dockerfile': 'dockerfile'
-    }
-    return languageMap[extension ?? ''] ?? 'text'
-  }
 
   const truncateFilename = (filename: string, maxLength = 20): string => {
     if (filename.length <= maxLength) {
@@ -199,6 +170,17 @@ export default function GistCard({ data, loading = false }: GistCardProps) {
               )}
             </div>
           </div>
+        </div>
+
+        {/* Star and Fork Actions */}
+        <div className="gist-card__actions">
+          <GistActions 
+            gistId={data.id} 
+            size="small"
+            onForkSuccess={(forkedGist) => {
+              void navigate(`/gist/${forkedGist.id}`)
+            }}
+          />
         </div>
 
       </div>

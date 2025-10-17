@@ -2,7 +2,9 @@ import { Avatar, Button, Skeleton, Table } from "antd"
 import type { ColumnsType } from "antd/es/table"
 import { EditOutlined, EyeOutlined } from "@ant-design/icons"
 import { useNavigate } from "react-router-dom"
-import type { GitHubGist } from "../services/github-api"
+import type { GitHubGist } from "../../services/github-api"
+import { formatUpdatedDate } from "../../utils/date-utils"
+import { GistActions } from "../GistActions/GistActions"
 
 type Row = {
   key: string
@@ -31,30 +33,6 @@ export function ProfileGistsTable({ gists, loading = false }: ProfileGistsTableP
     }
   };
 
-  // Helper function to format relative dates
-  const formatRelativeDate = (dateString: string): string => {
-    const now = new Date();
-    const updatedDate = new Date(dateString);
-    const diffInMs = now.getTime() - updatedDate.getTime();
-    
-    const minutes = Math.floor(diffInMs / (1000 * 60));
-    const hours = Math.floor(diffInMs / (1000 * 60 * 60));
-    const days = Math.floor(diffInMs / (1000 * 60 * 60 * 24));
-    const months = Math.floor(diffInMs / (1000 * 60 * 60 * 24 * 30));
-    const years = Math.floor(diffInMs / (1000 * 60 * 60 * 24 * 365));
-    
-    if (minutes < 60) {
-      return minutes <= 1 ? 'Last updated a few minutes ago' : `Last updated ${minutes} minutes ago`;
-    } else if (hours < 24) {
-      return hours === 1 ? 'Last updated an hour ago' : `Last updated ${hours} hours ago`;
-    } else if (days < 30) {
-      return days === 1 ? 'Last updated a day ago' : `Last updated ${days} days ago`;
-    } else if (months < 12) {
-      return months === 1 ? 'Last updated a month ago' : `Last updated ${months} months ago`;
-    } else {
-      return years === 1 ? 'Last updated a year ago' : `Last updated ${years} years ago`;
-    }
-  };
 
   // Convert GitHubGist to table row format
   const rows: Row[] = gists.map((gist) => {
@@ -167,7 +145,7 @@ export function ProfileGistsTable({ gists, loading = false }: ProfileGistsTableP
           <Skeleton.Input style={{ width: 200, height: 16 }} active />
         ) : (
           <span className="gists-table__updated">
-            {formatRelativeDate(record.updated)}
+            {formatUpdatedDate(record.updated)}
           </span>
         )
       ),
@@ -175,13 +153,14 @@ export function ProfileGistsTable({ gists, loading = false }: ProfileGistsTableP
     {
       title: "",
       key: "actions",
-      width: 96,
+      width: 200,
       render: (_, record) => (
-        <div aria-label="Actions">
+        <div aria-label="Actions" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           {loading && !record.name ? (
             <>
               <Skeleton.Button style={{ width: 32, height: 32, marginRight: 8 }} active />
-              <Skeleton.Button style={{ width: 32, height: 32 }} active />
+              <Skeleton.Button style={{ width: 32, height: 32, marginRight: 8 }} active />
+              <Skeleton.Button style={{ width: 60, height: 32 }} active />
             </>
           ) : (
             <>
@@ -189,6 +168,7 @@ export function ProfileGistsTable({ gists, loading = false }: ProfileGistsTableP
                 type="text" 
                 icon={<EyeOutlined />} 
                 aria-label="View gist"
+                size="small"
                 onClick={(e) => {
                   e.stopPropagation()
                   void navigate(`/gist/${record.key}`)
@@ -198,9 +178,17 @@ export function ProfileGistsTable({ gists, loading = false }: ProfileGistsTableP
                 type="text" 
                 icon={<EditOutlined />} 
                 aria-label="Edit gist"
+                size="small"
                 onClick={(e) => {
                   e.stopPropagation()
                   window.open(record.gistUrl, '_blank')
+                }}
+              />
+              <GistActions 
+                gistId={record.key} 
+                size="small"
+                onForkSuccess={(forkedGist) => {
+                  void navigate(`/gist/${forkedGist.id}`)
                 }}
               />
             </>

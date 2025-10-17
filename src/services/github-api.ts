@@ -105,6 +105,44 @@ class GitHubApiService {
     await this.api.delete<void>(`/gists/${gistId}`, { headers, auth: true })
   }
 
+  async starGist(gistId: string): Promise<void> {
+    const headers = firebaseAuthService.getGitHubApiHeaders()
+    if (!headers.Authorization) throw new Error('No authentication token available')
+    await this.api.put<void>(`/gists/${gistId}/star`, { headers, auth: true })
+  }
+
+  async unstarGist(gistId: string): Promise<void> {
+    const headers = firebaseAuthService.getGitHubApiHeaders()
+    if (!headers.Authorization) throw new Error('No authentication token available')
+    await this.api.delete<void>(`/gists/${gistId}/star`, { headers, auth: true })
+  }
+
+  async checkIfGistStarred(gistId: string): Promise<boolean> {
+    const headers = firebaseAuthService.getGitHubApiHeaders()
+    if (!headers.Authorization) throw new Error('No authentication token available')
+    try {
+      const response = await this.api.requestRaw(`/gists/${gistId}/star`, { headers, auth: true })
+      return response.status === 204
+    } catch (error) {
+      return false
+    }
+  }
+
+  async forkGist(gistId: string): Promise<GitHubGist> {
+    const headers = firebaseAuthService.getGitHubApiHeaders()
+    if (!headers.Authorization) throw new Error('No authentication token available')
+    const response = await this.api.requestRaw(`/gists/${gistId}/forks`, { 
+      method: 'POST',
+      headers, 
+      auth: true 
+    })
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({})) as { message?: string }
+      throw new Error(`Failed to fork gist: ${errorData.message ?? 'Unknown error'}`)
+    }
+    return await response.json() as GitHubGist
+  }
+
   async searchGists(query: string): Promise<GitHubGist[]> {
     const headers = firebaseAuthService.getGitHubApiHeaders()
     const useAuth = headers.Authorization !== ''

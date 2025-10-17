@@ -1,5 +1,5 @@
 /* Import the gist card styles */
-@use './gist-card.scss';
+@use '../GistCard/gist-card.scss';
 
 .gists-grid {
   display: grid;

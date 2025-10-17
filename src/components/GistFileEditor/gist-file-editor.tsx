@@ -1,6 +1,7 @@
 import { useState } from "react"
 import { Trash2 } from "lucide-react"
-import GistEditor from "./gist-editor"
+import { getMonacoLanguageFromFilename } from "../../utils/language-utils"
+import GistEditor from "../GistEditor/gist-editor"
 
 export type GistFile = {
   id: string
@@ -31,24 +32,6 @@ export default function GistFileEditor({ file, onChange, onRemove, disabled = fa
     onChange({ ...file, content: newContent })
   }
 
-  // Detect language from filename extension
-  const getLanguageFromFilename = (filename: string): "json" | "javascript" | "typescript" | "markdown" => {
-    const extension = filename.split('.').pop()?.toLowerCase()
-    switch (extension) {
-      case 'js':
-        return 'javascript'
-      case 'ts':
-        return 'typescript'
-      case 'json':
-        return 'json'
-      case 'md':
-      case 'markdown':
-        return 'markdown'
-      default:
-        return 'javascript'
-    }
-  }
-
   return (
     <div className="gist-file-editor">
       <div className="gist-file-editor__header">
@@ -73,7 +56,7 @@ export default function GistFileEditor({ file, onChange, onRemove, disabled = fa
       <div className="gist-file-editor__editor">
         <GistEditor
           value={content}
-          language={getLanguageFromFilename(filename)}
+          language={getMonacoLanguageFromFilename(filename)}
           readOnly={disabled}
           height={300}
           onChange={handleContentChange}

@@ -1,0 +1,40 @@
+.gist-actions {
+  .starred {
+    color: #faad14;
+    
+    &:hover {
+      color: #d48806;
+    }
+  }
+  
+  .unstarred {
+    color: #8c8c8c;
+    
+    &:hover {
+      color: #faad14;
+    }
+  }
+  
+  .ant-btn {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    
+    &:hover {
+      background-color: rgba(0, 0, 0, 0.04);
+    }
+  }
+  
+  .ant-btn-loading {
+    opacity: 0.7;
+  }
+}
+
+@media (max-width: 768px) {
+  .gist-actions {
+    .ant-btn {
+      font-size: 12px;
+      padding: 4px 8px;
+    }
+  }
+}

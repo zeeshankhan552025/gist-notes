@@ -2,9 +2,10 @@ import { Avatar, Button, Skeleton, Table } from "antd"
 import type { ColumnsType } from "antd/es/table"
 import { ForkOutlined, StarOutlined } from "@ant-design/icons"
 import { useNavigate } from "react-router-dom"
-import type { GitHubGist } from "../services/github-api"
+import type { GitHubGist } from "../../services/github-api"
+import { formatUpdatedDate } from "../../utils/date-utils"
 
-import "../pages/public-gist/table/public-gist-table-view.scss"
+import "../../pages/public-gist/table/public-gist-table-view.scss"
 
 type Row = {
   key: string
@@ -31,31 +32,6 @@ export function PublicGistsTable({ gists, loading = false }: PublicGistsTablePro
       void navigate(`/gist/${record.key}`);
     }
   };
-  // Helper function to format relative dates
-  const formatRelativeDate = (dateString: string): string => {
-    const now = new Date();
-    const updatedDate = new Date(dateString);
-    const diffInMs = now.getTime() - updatedDate.getTime();
-    
-    const minutes = Math.floor(diffInMs / (1000 * 60));
-    const hours = Math.floor(diffInMs / (1000 * 60 * 60));
-    const days = Math.floor(diffInMs / (1000 * 60 * 60 * 24));
-    const months = Math.floor(diffInMs / (1000 * 60 * 60 * 24 * 30));
-    const years = Math.floor(diffInMs / (1000 * 60 * 60 * 24 * 365));
-    
-    if (minutes < 60) {
-      return minutes <= 1 ? 'Last updated a few minutes ago' : `Last updated ${minutes} minutes ago`;
-    } else if (hours < 24) {
-      return hours === 1 ? 'Last updated an hour ago' : `Last updated ${hours} hours ago`;
-    } else if (days < 30) {
-      return days === 1 ? 'Last updated a day ago' : `Last updated ${days} days ago`;
-    } else if (months < 12) {
-      return months === 1 ? 'Last updated a month ago' : `Last updated ${months} months ago`;
-    } else {
-      return years === 1 ? 'Last updated a year ago' : `Last updated ${years} years ago`;
-    }
-  };
-
   // Generate skeleton rows for loading state
   const generateSkeletonRows = (count = 5): Row[] => {
     return Array.from({ length: count }, (_, index) => ({
@@ -151,7 +127,7 @@ export function PublicGistsTable({ gists, loading = false }: PublicGistsTablePro
           <Skeleton.Input style={{ width: 200, height: 16 }} active />
         ) : (
           <span className="gists-table__updated">
-            {formatRelativeDate(dateString)}
+            {formatUpdatedDate(dateString)}
           </span>
         )
       ),

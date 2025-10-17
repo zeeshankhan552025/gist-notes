@@ -3,6 +3,7 @@ import { tomorrow } from 'react-syntax-highlighter/dist/esm/styles/prism'
 import { EyeOutlined } from '@ant-design/icons'
 import { Avatar, Tooltip } from 'antd'
 import { useNavigate } from 'react-router-dom'
+import { getLanguageFromFilename } from '../../utils/language-utils'
 import './profile-gist-card.scss'
 
 type GistItem = {
@@ -28,40 +29,8 @@ export function ProfileGistList({ items }: { items: GistItem[] }) {
       .slice(0, 2)
   }
 
-  const getLanguageFromFilename = (filename: string): string => {
-    const extension = filename.split('.').pop()?.toLowerCase()
-    const languageMap: Record<string, string> = {
-      'js': 'javascript',
-      'jsx': 'jsx',
-      'ts': 'typescript',
-      'tsx': 'tsx',
-      'py': 'python',
-      'java': 'java',
-      'c': 'c',
-      'cpp': 'cpp',
-      'cs': 'csharp',
-      'php': 'php',
-      'rb': 'ruby',
-      'go': 'go',
-      'rs': 'rust',
-      'sh': 'bash',
-      'sql': 'sql',
-      'html': 'html',
-      'css': 'css',
-      'scss': 'scss',
-      'json': 'json',
-      'xml': 'xml',
-      'yml': 'yaml',
-      'yaml': 'yaml',
-      'md': 'markdown',
-      'dockerfile': 'dockerfile'
-    }
-    return languageMap[extension ?? ''] ?? 'text'
-  }
-
   return (
-    <div className="profile-gist-grid">
-      {items.map((g) => {
+    <div className="profile-gist-grid">{items.map((g) => {
         const handleCardClick = () => {
           void navigate(`/gist/${g.id}`);
         };

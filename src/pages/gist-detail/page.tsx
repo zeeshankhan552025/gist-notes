@@ -4,8 +4,9 @@ import { useEffect, useState } from "react"
 import { message, Skeleton } from "antd"
 import { Header } from "../../layout/header"
 import { githubApiService, type GitHubGist } from "../../services/github-api"
+import { formatSimpleCreatedDate } from "../../utils/date-utils"
 import "./gist-detail.scss"
-import GistEditor from "../../components/gist-editor"
+import GistEditor from "../../components/GistEditor/gist-editor"
 
 export default function GistDetailPage() {
   const { gistId } = useParams<{ gistId: string }>()
@@ -57,20 +58,7 @@ export default function GistDetailPage() {
     return (a + b).toUpperCase()
   }
 
-  // Helper function to format date
-  const formatDate = (dateString: string): string => {
-    const now = new Date()
-    const date = new Date(dateString)
-    const diffInMs = now.getTime() - date.getTime()
-    const hours = Math.floor(diffInMs / (1000 * 60 * 60))
-    const days = Math.floor(diffInMs / (1000 * 60 * 60 * 24))
-    
-    if (hours < 24) {
-      return hours <= 1 ? 'Created an hour ago' : `Created ${hours} hours ago`
-    } else {
-      return days === 1 ? 'Created a day ago' : `Created ${days} days ago`
-    }
-  }
+
 
   // Loading state
   if (loading) {
@@ -168,7 +156,7 @@ export default function GistDetailPage() {
                 <span className="gist-detail__sep">/</span>
                 <span className="gist-detail__gist">{fileName}</span>
               </h1>
-              <div className="gist-detail__meta">{formatDate(gist.created_at)}</div>
+              <div className="gist-detail__meta">{formatSimpleCreatedDate(gist.created_at)}</div>
               <p className="gist-detail__desc">{gist.description ?? 'No description provided'}</p>
             </div>
           </div>
