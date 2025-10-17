@@ -26,6 +26,8 @@ export interface GitHubGist {
   comments: number
   git_pull_url: string
   git_push_url: string
+  forks?: number
+  stargazers_count?: number
 }
 
 export interface GitHubGistResponse {
@@ -141,6 +143,38 @@ class GitHubApiService {
       throw new Error(`Failed to fork gist: ${errorData.message ?? 'Unknown error'}`)
     }
     return await response.json() as GitHubGist
+  }
+
+  /**
+   * Check if a gist is starred by the authenticated user
+   */
+  async isGistStarred(gistId: string): Promise<boolean> {
+    const headers = firebaseAuthService.getGitHubApiHeaders()
+    if (!headers.Authorization) throw new Error('No authentication token available')
+    
+    const response = await this.api.requestRaw(`/gists/${gistId}/star`, {
+      method: 'GET',
+      headers,
+    })
+    
+    return response.status === 204 // 204 means starred, 404 means not starred
+  }
+
+  /**
+   * Get updated gist data (useful for refreshing counts after actions)
+   */
+  async getGistById(gistId: string): Promise<GitHubGist> {
+    const headers = firebaseAuthService.getGitHubApiHeaders()
+    const response = await this.api.requestRaw(`/gists/${gistId}`, {
+      method: 'GET',
+      headers: headers.Authorization ? headers : undefined,
+    })
+    
+    if (!response.ok) {
+      throw new Error(`Failed to fetch gist: ${response.status} ${response.statusText}`)
+    }
+    
+    return response.json() as Promise<GitHubGist>
   }
 
   async searchGists(query: string): Promise<GitHubGist[]> {

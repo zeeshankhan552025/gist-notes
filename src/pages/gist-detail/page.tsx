@@ -5,16 +5,141 @@ import { message, Skeleton } from "antd"
 import { Header } from "../../layout/header"
 import { githubApiService, type GitHubGist } from "../../services/github-api"
 import { formatSimpleCreatedDate } from "../../utils/date-utils"
+import { useAuthStore } from "../../stores/authStore"
 import "./gist-detail.scss"
 import GistEditor from "../../components/GistEditor/gist-editor"
 
 export default function GistDetailPage() {
   const { gistId } = useParams<{ gistId: string }>()
   const navigate = useNavigate()
+  const { githubUserData, isAuthenticated } = useAuthStore()
   const [gist, setGist] = useState<GitHubGist | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [activeFile, setActiveFile] = useState<string>('')
+  const [isStarred, setIsStarred] = useState(false)
+  const [starLoading, setStarLoading] = useState(false)
+  const [forkLoading, setForkLoading] = useState(false)
+  const [starCount, setStarCount] = useState(0)
+  const [forkCount, setForkCount] = useState(0)
+
+  // Check if current user owns this gist
+  const isOwner = Boolean(
+    gist && 
+    isAuthenticated && 
+    githubUserData && 
+    gist.owner.login === githubUserData.login
+  )
+
+  // Debug logging
+  useEffect(() => {
+    if (gist && githubUserData) {
+      console.log('Gist owner:', gist.owner.login)
+      console.log('Current user:', githubUserData.login)
+      console.log('Is authenticated:', isAuthenticated)
+      console.log('Is owner:', isOwner)
+    }
+  }, [gist, githubUserData, isAuthenticated, isOwner])
+
+  // Handle star gist
+  const handleStarGist = async () => {
+    if (!gist) return
+    
+    // Check if user owns the gist
+    if (isOwner) {
+      message.info('You cannot star your own gist')
+      return
+    }
+
+    // Check if user is authenticated
+    if (!isAuthenticated) {
+      message.error('Please log in to star gists')
+      return
+    }
+    
+    setStarLoading(true)
+    try {
+      await githubApiService.starGist(gist.id)
+      setIsStarred(true)
+      setStarCount(prev => prev + 1)
+      message.success('Gist starred successfully!')
+      
+      // Optionally refresh gist data but keep counts as managed locally
+      try {
+        await githubApiService.getGistById(gist.id)
+        // Don't update counts from server - keep them as user-managed
+      } catch (error) {
+        // Could not refresh gist data
+      }
+    } catch (error) {
+      console.error('Failed to star gist:', error)
+      
+      // Show specific error message based on error type
+      const errorMessage = error instanceof Error ? error.message : 'Failed to star gist'
+      if (errorMessage.includes('own gist')) {
+        message.error('You cannot star your own gist')
+      } else if (errorMessage.includes('authentication') || errorMessage.includes('401')) {
+        message.error('Please log in to star gists')
+      } else {
+        message.error('Failed to star gist. Please try again.')
+      }
+      
+      setStarCount(prev => Math.max(0, prev - 1)) // Revert optimistic update
+    } finally {
+      setStarLoading(false)
+    }
+  }
+
+  // Handle fork gist
+  const handleForkGist = async () => {
+    if (!gist) return
+    
+    // Check if user owns the gist
+    if (isOwner) {
+      message.info('You cannot fork your own gist')
+      return
+    }
+
+    // Check if user is authenticated
+    if (!isAuthenticated) {
+      message.error('Please log in to fork gists')
+      return
+    }
+    
+    setForkLoading(true)
+    try {
+      const forkedGist = await githubApiService.forkGist(gist.id)
+      setForkCount(prev => prev + 1)
+      message.success('Gist forked successfully!')
+      
+      // Optionally refresh gist data but keep counts as managed locally
+      try {
+        await githubApiService.getGistById(gist.id)
+        // Don't update counts from server - keep them as user-managed
+      } catch (error) {
+        // Could not refresh gist data
+      }
+      
+      // Navigate to the forked gist
+      void navigate(`/gist/${forkedGist.id}`)
+    } catch (error) {
+      console.error('Failed to fork gist:', error)
+      
+      // Show specific error message based on error type
+      const errorMessage = error instanceof Error ? error.message : 'Failed to fork gist'
+      if (errorMessage.includes('own gist')) {
+        message.error('You cannot fork your own gist')
+      } else if (errorMessage.includes('authentication') || errorMessage.includes('401')) {
+        message.error('Please log in to fork gists')
+      } else {
+        message.error('Failed to fork gist. Please try again.')
+      }
+      
+      setForkCount(prev => Math.max(0, prev - 1)) // Revert optimistic update
+    } finally {
+      setForkLoading(false)
+    }
+  }
 
   useEffect(() => {
     const fetchGist = async () => {
@@ -37,6 +162,18 @@ export default function GistDetailPage() {
           const firstFileName = Object.keys(gistData.files)[0]
           if (firstFileName) {
             setActiveFile(firstFileName)
+          }
+          
+          // Initialize counts to 0 for detail page
+          setStarCount(0)
+          setForkCount(0)
+          
+          // Check if gist is starred
+          try {
+            const starred = await githubApiService.isGistStarred(gistId)
+            setIsStarred(starred)
+          } catch (error) {
+            // Could not check star status - non-critical error, continue without star status
           }
         }
       } catch {
@@ -122,11 +259,6 @@ export default function GistDetailPage() {
   const {files} = gist
   const fileNames = Object.keys(files)
   
-  // Debug logging
-  console.log('Gist files:', files)
-  console.log('File names:', fileNames)
-  console.log('Active file:', activeFile)
-  
   const currentFile = activeFile && files[activeFile] ? files[activeFile] : null
   const fileName = currentFile?.filename ?? 'untitled'
   const fileContent = currentFile?.content ?? '// File content not available'
@@ -165,27 +297,47 @@ export default function GistDetailPage() {
             <button 
               className="btn" 
               aria-label="Fork gist"
-              onClick={() => window.open(gist.git_pull_url, '_blank')}
+              disabled={forkLoading || isOwner || !isAuthenticated}
+              onClick={handleForkGist}
+              title={
+                !isAuthenticated 
+                  ? "Please log in to fork gists"
+                  : isOwner 
+                    ? "You cannot fork your own gist" 
+                    : "Fork this gist"
+              }
             >
               <span className="btn__icon" aria-hidden>
                 <GitFork size={16} />
               </span>
-              Fork
+              {forkLoading ? 'Forking...' : 'Fork'}
               <span className="btn__count" aria-label="Fork count">
-                {gist.comments || 0}
+                {forkCount}
               </span>
             </button>
             <button 
               className="btn" 
               aria-label="Star gist"
-              onClick={() => window.open(gist.html_url, '_blank')}
+              disabled={starLoading || isOwner || !isAuthenticated}
+              onClick={handleStarGist}
+              title={
+                !isAuthenticated 
+                  ? "Please log in to star gists"
+                  : isOwner 
+                    ? "You cannot star your own gist" 
+                    : "Star this gist"
+              }
+              style={{ 
+                backgroundColor: isStarred ? '#faad14' : undefined,
+                color: isStarred ? 'white' : undefined
+              }}
             >
               <span className="btn__icon" aria-hidden>
-                <Star size={16} />
+                <Star size={16} fill={isStarred ? 'currentColor' : 'none'} />
               </span>
-              Star
+              {starLoading ? 'Starring...' : (isStarred ? 'Starred' : 'Star')}
               <span className="btn__count" aria-label="Star count">
-                {gist.comments || 0}
+                {starCount}
               </span>
             </button>
           </div>

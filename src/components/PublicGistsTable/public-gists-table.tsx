@@ -1,8 +1,10 @@
-import { Avatar, Button, Skeleton, Table } from "antd"
+import { Avatar, Button, Skeleton, Table, message } from "antd"
 import type { ColumnsType } from "antd/es/table"
 import { ForkOutlined, StarOutlined } from "@ant-design/icons"
 import { useNavigate } from "react-router-dom"
+import { useState, useEffect } from "react"
 import type { GitHubGist } from "../../services/github-api"
+import { githubApiService } from "../../services/github-api"
 import { formatUpdatedDate } from "../../utils/date-utils"
 
 import "../../pages/public-gist/table/public-gist-table-view.scss"
@@ -16,6 +18,8 @@ type Row = {
   avatarUrl: string
   language: string
   gistUrl: string
+  starCount: number
+  forkCount: number
 }
 
 interface PublicGistsTableProps {
@@ -25,6 +29,98 @@ interface PublicGistsTableProps {
 
 export function PublicGistsTable({ gists, loading = false }: PublicGistsTableProps) {
   const navigate = useNavigate();
+  const [starredGists, setStarredGists] = useState<Set<string>>(new Set());
+  const [loadingActions, setLoadingActions] = useState<Set<string>>(new Set());
+  const [rowData, setRowData] = useState<Row[]>([]);
+
+  // Update row data when gists change
+  useEffect(() => {
+    const updatedRows: Row[] = gists.map((gist) => {
+      const firstFile = Object.values(gist.files)[0]
+      return {
+        key: gist.id,
+        name: gist.owner.login,
+        gistName: Object.keys(gist.files)[0] ?? 'untitled',
+        description: gist.description ?? 'No description',
+        updated: gist.updated_at,
+        avatarUrl: gist.owner.avatar_url,
+        language: firstFile?.language ?? 'Text',
+        gistUrl: gist.html_url,
+        starCount: gist.stargazers_count || 0,
+        forkCount: gist.forks || 0
+      }
+    });
+    setRowData(updatedRows);
+  }, [gists]);
+
+  // Handle star gist with optimistic updates
+  const handleStarGist = async (gistId: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setLoadingActions(prev => new Set(prev).add(`star-${gistId}`));
+    
+    // Optimistic update
+    setRowData(prev => prev.map(row => 
+      row.key === gistId 
+        ? { ...row, starCount: row.starCount + 1 }
+        : row
+    ));
+    
+    try {
+      await githubApiService.starGist(gistId);
+      setStarredGists(prev => new Set(prev).add(gistId));
+      message.success('Gist starred successfully!');
+    } catch (error) {
+      // Revert optimistic update on error
+      setRowData(prev => prev.map(row => 
+        row.key === gistId 
+          ? { ...row, starCount: Math.max(0, row.starCount - 1) }
+          : row
+      ));
+      console.error('Failed to star gist:', error);
+      message.error('Failed to star gist. Please try again.');
+    } finally {
+      setLoadingActions(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(`star-${gistId}`);
+        return newSet;
+      });
+    }
+  };
+
+  // Handle fork gist with optimistic updates
+  const handleForkGist = async (gistId: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setLoadingActions(prev => new Set(prev).add(`fork-${gistId}`));
+    
+    // Optimistic update
+    setRowData(prev => prev.map(row => 
+      row.key === gistId 
+        ? { ...row, forkCount: row.forkCount + 1 }
+        : row
+    ));
+    
+    try {
+      const forkedGist = await githubApiService.forkGist(gistId);
+      message.success('Gist forked successfully!');
+      // Optionally navigate to the forked gist
+      void navigate(`/gist/${forkedGist.id}`);
+    } catch (error) {
+      // Revert optimistic update on error
+      setRowData(prev => prev.map(row => 
+        row.key === gistId 
+          ? { ...row, forkCount: Math.max(0, row.forkCount - 1) }
+          : row
+      ));
+      console.error('Failed to fork gist:', error);
+      message.error('Failed to fork gist. Please try again.');
+    } finally {
+      setLoadingActions(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(`fork-${gistId}`);
+        return newSet;
+      });
+    }
+  };
 
   // Handle row click to navigate to detail page
   const handleRowClick = (record: Row) => {
@@ -42,24 +138,14 @@ export function PublicGistsTable({ gists, loading = false }: PublicGistsTablePro
       updated: '',
       avatarUrl: '',
       language: '',
-      gistUrl: ''
+      gistUrl: '',
+      starCount: 0,
+      forkCount: 0
     }));
   };
 
-  // Convert GitHub gists to table rows
-  const rows: Row[] = gists.map((gist) => {
-    const firstFile = Object.values(gist.files)[0]
-    return {
-      key: gist.id,
-      name: gist.owner.login,
-      gistName: Object.keys(gist.files)[0] ?? 'untitled',
-      description: gist.description ?? 'No description',
-      updated: gist.updated_at, // Keep original ISO string for relative formatting
-      avatarUrl: gist.owner.avatar_url,
-      language: firstFile?.language ?? 'Text',
-      gistUrl: gist.html_url
-    }
-  })
+  // Use rowData for the table, which includes optimistic updates
+  const rows: Row[] = loading ? generateSkeletonRows() : rowData;
 
   const columns: ColumnsType<Row> = [
     {
@@ -148,14 +234,21 @@ export function PublicGistsTable({ gists, loading = false }: PublicGistsTablePro
               <Button 
                 type="text" 
                 icon={<ForkOutlined />} 
-                aria-label="View gist"
-                onClick={() => window.open(record.gistUrl, '_blank')}
+                aria-label="Fork gist"
+                loading={loadingActions.has(`fork-${record.key}`)}
+                onClick={(e) => handleForkGist(record.key, e)}
+                size="small"
               />
               <Button 
                 type="text" 
                 icon={<StarOutlined />} 
                 aria-label="Star gist"
-                onClick={() => window.open(record.gistUrl, '_blank')}
+                loading={loadingActions.has(`star-${record.key}`)}
+                style={{ 
+                  color: starredGists.has(record.key) ? '#faad14' : undefined 
+                }}
+                onClick={(e) => handleStarGist(record.key, e)}
+                size="small"
               />
             </>
           )}
