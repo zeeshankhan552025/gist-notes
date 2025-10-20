@@ -1,6 +1,6 @@
 import { useState } from "react"
 import { Avatar, Button, Dropdown, Input, message } from "antd"
-import { LogoutOutlined, SearchOutlined, SettingOutlined, UserOutlined } from "@ant-design/icons"
+import { LogoutOutlined, SearchOutlined, UserOutlined } from "@ant-design/icons"
 import { useNavigate } from "react-router-dom"
 import type { MenuProps } from "antd"
 import { githubApiService } from "../services/github-api"
